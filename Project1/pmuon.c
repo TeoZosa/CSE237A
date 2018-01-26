@@ -19,15 +19,55 @@ void set_pmu(void* dummy) {
  asm volatile("mcr p15, 0, %0, c9, c14, 2\n\t" :: "r" (~0));
  // 4. Read how many event counters exist
  asm volatile("mrc p15, 0, %0, c9, c12, 0\n\t" : "=r" (v)); // Read PMCR
- printk("We have %d configurable event counters on Core %d\n",
- (v >> 11) & 0x1f, smp_processor_id());
+
+
+  printk("PMCR value is %d \n",
+         (v ));
+  printk("PMCR value bitshifted 11 times is %d\nMasked with 0x1f gives us # event counters\n",
+         (v >> 11));
+
+  printk("We have %d configurable event counters on Core %d\n",
+         (v >> 11) & 0x1f, smp_processor_id());
+
+
  // 5. Set six event counter registers (Project Assignment you need to IMPLEMENT)
 
-    //PMSELR register
- asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x0));
-asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x08));
+                    //[PMSELR register]: N. (0XN-1)
+                    //[PMXEVTYPER register]: EVENT_MNEMONIC (0XEM) - description
+//  1.(0X0)
+// INST_RETIRED (0X08) - # of instructions architecturally executed
+  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x0));
+  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x08));
+
+//  2.(0X1)
+// L1D_CACHE (0X04) - # L1 Data cache accesses
+  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x1));
+  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x04));
+
+//  3.(0X2)
+// L1D_CACHE_REFILL (0X03) - # L1 Data cache misses (refill)
+  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x2));
+  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x03));
+
+//  4.(0X3)
+// L2D_CACHE (0X16) - # L2 Data cache accesses
+  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0X3));
+  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x16));
+
+//  5.(0X4)
+// L2D_CACHE_REFILL (0X17) - # L2 Data cache misses (refill)
+  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x4));
+  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x17));
+
+//  6.(0X5)
+// L1I_TLB_REFILL (0X02) - # L1 Instruction TLB misses (refill)
+  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x5));
+  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x02));
 
 
+
+printk("We have %d configurable event counters on Core %d\n",
+       (v >> 11) & 0x1f, smp_processor_id());// mask 0x1f == 0b1 1111
 
 
 }
