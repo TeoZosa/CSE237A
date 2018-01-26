@@ -66,8 +66,7 @@ void set_pmu(void* dummy) {
 
 
 
-printk("We have %d configurable event counters on Core %d\n",
-       (v >> 11) & 0x1f, smp_processor_id());// mask 0x1f == 0b1 1111
+printk("Event counters set\n");
 
 
 }
