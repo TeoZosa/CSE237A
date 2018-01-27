@@ -72,7 +72,8 @@ int set_CPU_freq(int isMax){
 
 PerfData* init_performance_measurements(){
     printf("Characterization starts.\n");
-    PerfData perf_msmts[MAX_CPU_IN_RPI3];
+//    PerfData* perf_msmts[MAX_CPU_IN_RPI3];
+    PerfData* perf_msmts = (PerfData*)malloc(MAX_CPU_IN_RPI3 * sizeof(PerfData));
     return perf_msmts;
 }
 
