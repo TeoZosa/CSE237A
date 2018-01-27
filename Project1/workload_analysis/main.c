@@ -76,7 +76,7 @@ PerfData* init_performance_measurements(){
     return perf_msmts;
 }
 
-TimeType run_workload_timed(PerfData perf_msmts){
+TimeType run_workload_timed(PerfData* perf_msmts){
     TimeType start_time = get_current_time_us();
     run_workloads(perf_msmts);
     return start_time;
@@ -100,9 +100,9 @@ void run_test(int isMax){
     int freq = set_CPU_freq(isMax);
     // 2. Run workload
     PerfData* perf_msmts= init_performance_measurements();
-    TimeType start_time = run_workload_timed(&perf_msmts);
+    TimeType start_time = run_workload_timed(perf_msmts);
     // 3. Here, we get elapsed time and performance counters.
-    report_perf_msmts(&perf_msmts, freq, start_time);
+    report_perf_msmts(perf_msmts, freq, start_time);
     // 4. Finish the program
     cleanup();
 }
