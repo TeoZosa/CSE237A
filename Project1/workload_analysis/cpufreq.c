@@ -19,26 +19,33 @@ static int minFreq = 0;
 
 static void set_governor(const char* szNewGovernor) {
 	FILE* fp;
+	printf("opening SCALING_GOVERNOR.\n");
 	fp = fopen(POLICY_PATH"scaling_governor", "w");
+	printf("printing to SCALING_GOVERNOR.\n");
 	fprintf(fp, "%s", szNewGovernor);
 	fclose(fp);
 }
 
 static void read_freq() {
 	FILE* fp;
-    fp = fopen(POLICY_PATH"scaling_max_freq", "r");
+	printf("opening SCALING_MAX_FREQ.\n");
+	fp = fopen(POLICY_PATH"scaling_max_freq", "r");
 	fscanf(fp, "%d", &maxFreq);
 	fclose(fp);
 
-    fp = fopen(POLICY_PATH"scaling_min_freq", "r");
+	printf("opening SCALING_MIN_FREQ.\n");
+	fp = fopen(POLICY_PATH"scaling_min_freq", "r");
 	fscanf(fp, "%d", &minFreq);
 	fclose(fp);
 }
 
 void set_userspace_governor() {
     set_governor("userspace");
-    if (maxFreq == 0)
-        read_freq();
+
+    if (maxFreq == 0){
+		printf("reading FREQ (maxFreq == 0).\n");
+		read_freq();
+	}
 }
 
 
