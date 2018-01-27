@@ -1,7 +1,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Your name");
+MODULE_AUTHOR("Teofilo Zosa");
 MODULE_DESCRIPTION("PMUON");
 
 #define REG1 0x00
