@@ -70,7 +70,7 @@ int set_CPU_freq(int isMax){
     return get_cur_freq();
 }
 
-PerfData setup_and_run_workload(){
+PerfData* setup_and_run_workload(){
     printf("Characterization starts.\n");
     PerfData perf_msmts[MAX_CPU_IN_RPI3];
     TimeType start_time = get_current_time_us();
@@ -95,7 +95,7 @@ void run_test(int isMax){
     // 1. Set CPU frequency
     int freq = set_CPU_freq(isMax);
     // 2. Run workload
-    PerfData perf_msmts= setup_and_run_workload();
+    PerfData* perf_msmts= setup_and_run_workload();
     // 3. Here, we get elapsed time and performance counters.
     report_perf_msmts(&perf_msmts, freq, start_time);
     // 4. Finish the program
