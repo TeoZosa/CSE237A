@@ -27,6 +27,8 @@
 #define TRUE            1
 #define FALSE           0
 
+
+
 // The function can be called after finishing workload(s)
 void report_measurement(int freq, PerfData* perf_msmts) {
     int core;
@@ -58,12 +60,49 @@ void report_measurement(int freq, PerfData* perf_msmts) {
 }
 
 
-void run_tests(){
-    for (int isMax=FALSE; isMax <= TRUE; isMax++){
-        single_core_tests(isMax);
-        multi_core_tests(isMax);
+int set_CPU_freq(int isMax){
+    set_userspace_governor();
+    if (isMax){
+        set_by_max_freq();
+    }else{
+        set_by_min_freq();
     }
+    return get_cur_freq();
 }
+
+PerfData* setup_and_run_workload(){
+    printf("Characterization starts.\n");
+    PerfData perf_msmts[MAX_CPU_IN_RPI3];
+    TimeType start_time = get_current_time_us();
+    run_workloads(perf_msmts);
+    return &perf_msmts;
+}
+
+void report_perf_msmts(PerfData* perf_msmts, int freq, TimeType start_time){
+    printf("Total Execution time (us): %lld at %d\n",
+           get_current_time_us() - start_time, get_cur_freq());
+    report_measurement(freq, *perf_msmts);
+}
+
+
+
+void cleanup(){
+    unregister_workload_all();
+    set_ondemand_governor();
+}
+
+void run_test(int isMax){
+    // 1. Set CPU frequency
+    int freq = set_CPU_freq(isMax);
+    // 2. Run workload
+    PerfData* perf_msmts= setup_and_run_workload();
+    // 3. Here, we get elapsed time and performance counters.
+    report_perf_msmts(&perf_msmts, freq, start_time);
+    // 4. Finish the program
+    cleanup();
+}
+
+
 
 void single_core_tests(int isMax){
             // Initialize the workload(s)
@@ -118,44 +157,15 @@ void multi_core_tests(int isMax){
     run_test(isMax);
 }
 
-void run_test(int isMax){
-    // 1. Set CPU frequency
-    int freq = set_CPU_freq(isMax);
-    // 2. Run workload
-    PerfData* perf_msmts= setup_and_run_workload();
-    // 3. Here, we get elapsed time and performance counters.
-    report_perf_msmts(&perf_msmts, freq, start_time);
-    // 4. Finish the program
-    cleanup();
-}
-void cleanup(){
-    unregister_workload_all();
-    set_ondemand_governor();
-}
 
-void report_perf_msmts(PerfData* perf_msmts, int freq, TimeType start_time){
-    printf("Total Execution time (us): %lld at %d\n",
-           get_current_time_us() - start_time, get_cur_freq());
-    report_measurement(freq, *perf_msmts);
-}
-
-PerfData* setup_and_run_workload(){
-    printf("Characterization starts.\n");
-    PerfData perf_msmts[MAX_CPU_IN_RPI3];
-    TimeType start_time = get_current_time_us();
-    run_workloads(perf_msmts);
-    return &perf_msmts;
-}
-
-int set_CPU_freq(int isMax){
-    set_userspace_governor();
-    if (isMax){
-        set_by_max_freq();
-    }else{
-        set_by_min_freq();
+void run_tests(){
+    int isMax;
+    for (isMax=FALSE; isMax <= TRUE; isMax++){
+        single_core_tests(isMax);
+        multi_core_tests(isMax);
     }
-    return get_cur_freq();
 }
+
 
 int main(int argc, char *argv[]) {
 
