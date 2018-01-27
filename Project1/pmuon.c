@@ -3,6 +3,24 @@
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Your name");
 MODULE_DESCRIPTION("PMUON");
+
+#define REG1 0x00
+#define REG2 0x01
+#define REG3 0x02
+#define REG4 0x03
+#define REG5 0x04
+#define REG6 0x05
+
+#define INST_EXEC 0X08
+#define L1D_CACHE_ACSS 0X04
+#define L1D_CACHE_MISS 0X03
+#define L2D_CACHE_ACSS 0X16
+#define L2D_CACHE_MISS 0X17
+#define L1I_TLB_MISS 0X02
+
+#define PMSELR_WRITE "mcr p15, 0, %0, c9, c12, 5\n\t" :: "r"
+#define PMXEVTYPER_WRITE "mcr p15, 0, %0, c9, c13, 1\n\t" :: "r"
+
 void set_pmu(void* dummy) {
  unsigned int v;
  printk("Turn PMU on Core %d\n", smp_processor_id());
@@ -36,33 +54,33 @@ void set_pmu(void* dummy) {
                     //[PMXEVTYPER register]: EVENT_MNEMONIC (0XEM) - description
 //  1.(0X0)
 // INST_RETIRED (0X08) - # of instructions architecturally executed
-  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x0));
-  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x08));
+  asm volatile(PMSELR_WRITE (REG1));
+  asm volatile(PMXEVTYPER_WRITE (INST_EXEC));
 
 //  2.(0X1)
 // L1D_CACHE (0X04) - # L1 Data cache accesses
-  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x1));
-  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x04));
+  asm volatile(PMSELR_WRITE (REG2));
+  asm volatile(PMXEVTYPER_WRITE (L1D_CACHE_ACSS));
 
 //  3.(0X2)
 // L1D_CACHE_REFILL (0X03) - # L1 Data cache misses (refill)
-  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x2));
-  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x03));
+  asm volatile(PMSELR_WRITE (REG3));
+  asm volatile(PMXEVTYPER_WRITE (L1D_CACHE_MISS));
 
 //  4.(0X3)
 // L2D_CACHE (0X16) - # L2 Data cache accesses
-  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0X3));
-  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x16));
+  asm volatile(PMSELR_WRITE (REG4));
+  asm volatile(PMXEVTYPER_WRITE (L2D_CACHE_ACSS));
 
 //  5.(0X4)
 // L2D_CACHE_REFILL (0X17) - # L2 Data cache misses (refill)
-  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x4));
-  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x17));
+  asm volatile(PMSELR_WRITE (REG5));
+  asm volatile(PMXEVTYPER_WRITE (L2D_CACHE_MISS));
 
 //  6.(0X5)
 // L1I_TLB_REFILL (0X02) - # L1 Instruction TLB misses (refill)
-  asm volatile("mcr p15, 0, %0, c9, c12, 5\n\t" :: "r" (0x5));
-  asm volatile("mcr p15, 0, %0, c9, c13, 1\n\t" :: "r" (0x02));
+  asm volatile(PMSELR_WRITE (REG6));
+  asm volatile(PMXEVTYPER_WRITE (L1I_TLB_MISS));
 
 
 

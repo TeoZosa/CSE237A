@@ -14,6 +14,19 @@
 #include "workload_util.h"
 #include "workload.h"
 
+#define REGISTER_WL1_CORE_0    register_workload(0, workload1_init, workload1_body, workload1_exit);
+#define REGISTER_WL1_CORE_1    register_workload(1, workload1_init, workload1_body, workload1_exit);
+
+#define REGISTER_WL2_CORE_0    register_workload(0, workload2_init, workload2_body, workload2_exit);
+#define REGISTER_WL2_CORE_1    register_workload(1, workload2_init, workload2_body, workload2_exit);
+
+#define REGISTER_WL3_CORE_0    register_workload(0, workload3_init, workload3_body, workload3_exit);
+#define REGISTER_WL3_CORE_1    register_workload(1, workload3_init, workload3_body, workload3_exit);
+
+
+#define TRUE            1
+#define FALSE           0
+
 // The function can be called after finishing workload(s)
 void report_measurement(int freq, PerfData* perf_msmts) {
     int core;
@@ -44,33 +57,128 @@ void report_measurement(int freq, PerfData* perf_msmts) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    // 0. Initialize the workload
-    // ****** YOU MAY NEED TO CHANGE HERE TO TEST OTHER WORKLOADS *******
-    printf("Initialization.\n");
-    register_workload(0, workload1_init, workload1_body, workload1_exit);
-    //register_workload(1, workload2_init, workload2_body, workload2_exit);
 
+void run_tests(){
+    for (int isMax=FALSE; isMax <= TRUE; isMax++){
+        single_core_tests(isMax);
+        multi_core_tests(isMax);
+    }
+}
+
+void single_core_tests(int isMax){
+            // Initialize the workload(s)
+    //1-3: One workload at a time on core 0
+
+    printf("WL1 Single Core. \nMax CPU Freq: %d.\n", isMax);
+    REGISTER_WL1_CORE_0
+    run_test(isMax);
+
+    printf("WL2 Single Core. \nMax CPU Freq: %d.\n", isMax);
+    REGISTER_WL2_CORE_0
+    run_test(isMax);
+
+    printf("WL3 Single Core. \nMax CPU Freq: %d.\n", isMax);
+    REGISTER_WL3_CORE_0
+    run_test(isMax);
+
+}
+
+void multi_core_tests(int isMax){
+                       // Initialize the workload(s)
+    //Two different workloads on cores 0 and 1, respectively, simultaneously
+    printf("WL1 Core 0\nWL2 Core 1\n. Max CPU Freq: %d.\n", isMax);
+    REGISTER_WL1_CORE_0
+    REGISTER_WL2_CORE_1
+    run_test(isMax);
+
+    printf("WL1 Core 0\nWL3 Core 1\n. Max CPU Freq: %d.\n", isMax);
+    REGISTER_WL1_CORE_0
+    REGISTER_WL3_CORE_1
+    run_test(isMax);
+
+    printf("WL2 Core 0\nWL3 Core 1\n. Max CPU Freq: %d.\n", isMax);
+    REGISTER_WL2_CORE_0
+    REGISTER_WL3_CORE_1
+    run_test(isMax);
+
+    //Same workloads on cores 0 and 1 simultaneously
+    printf("WL1 Core 0 & Core 1\n. Max CPU Freq: %d.\n", isMax);
+    REGISTER_WL1_CORE_0
+    REGISTER_WL1_CORE_1
+    run_test(isMax);
+
+    printf("WL2 Core 0 & Core 1\n. Max CPU Freq: %d.\n", isMax);
+    REGISTER_WL2_CORE_0
+    REGISTER_WL2_CORE_1
+    run_test(isMax);
+
+    printf("WL3 Core 0 & Core 1\n. Max CPU Freq: %d.\n", isMax);
+    REGISTER_WL3_CORE_0
+    REGISTER_WL3_CORE_1
+    run_test(isMax);
+}
+
+void run_test(int isMax){
     // 1. Set CPU frequency
-    // ****** YOU MAY NEED TO CHANGE THIS TO USE set_by_min_freq() ******
-    set_userspace_governor();
-    set_by_max_freq(); 
-    int freq = get_cur_freq();
-    
+    int freq = set_CPU_freq(isMax);
     // 2. Run workload
+    PerfData* perf_msmts= setup_and_run_workload();
+    // 3. Here, we get elapsed time and performance counters.
+    report_perf_msmts(&perf_msmts, freq, start_time);
+    // 4. Finish the program
+    cleanup();
+}
+void cleanup(){
+    unregister_workload_all();
+    set_ondemand_governor();
+}
+
+void report_perf_msmts(PerfData* perf_msmts, int freq, TimeType start_time){
+    printf("Total Execution time (us): %lld at %d\n",
+           get_current_time_us() - start_time, get_cur_freq());
+    report_measurement(freq, *perf_msmts);
+}
+
+PerfData* setup_and_run_workload(){
     printf("Characterization starts.\n");
     PerfData perf_msmts[MAX_CPU_IN_RPI3];
     TimeType start_time = get_current_time_us();
     run_workloads(perf_msmts);
+    return &perf_msmts;
+}
 
-    // 3. Here, we get elapsed time and performance counters.
-    printf("Total Execution time (us): %lld at %d\n",
-            get_current_time_us() - start_time, get_cur_freq());
-    report_measurement(freq, perf_msmts);
+int set_CPU_freq(int isMax){
+    set_userspace_governor();
+    if (isMax){
+        set_by_max_freq();
+    }else{
+        set_by_min_freq();
+    }
+    return get_cur_freq();
+}
 
-    // 4. Finish the program
-    unregister_workload_all();
-    set_ondemand_governor();
+int main(int argc, char *argv[]) {
 
+        // 0. Initialize the workload
+        // ****** YOU MAY NEED TO CHANGE HERE TO TEST OTHER WORKLOADS *******
+        printf("Initialization.\n");
+        run_tests();
+//        REGISTER_WL1;
+//        REGISTER_WL2;
+//        REGISTER_WL3;
+//
+//        // 1. Set CPU frequency
+//        // ****** YOU MAY NEED TO CHANGE THIS TO USE set_by_min_freq() ******
+//        int isMax = TRUE;
+//        int freq = set_CPU_freq(isMax);
+//
+//        // 2. Run workload
+//        PerfData* perf_msmts= setup_and_run_workload();
+//
+//        // 3. Here, we get elapsed time and performance counters.
+//        report_perf_msmts(&perf_msmts, freq, start_time);
+//
+//        // 4. Finish the program
+//        cleanup();
     return 0;
 }
