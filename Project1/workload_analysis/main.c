@@ -205,8 +205,11 @@ int main(int argc, char *argv[]) {
 
     // 1. Set CPU frequency
     // ****** YOU MAY NEED TO CHANGE THIS TO USE set_by_min_freq() ******
+    printf("Setting governor.\n");
     set_userspace_governor();
+    printf("Setting MAX_FREQ.\n");
     set_by_max_freq();
+    printf("getting CUR_FREQ.\n");
     int freq = get_cur_freq();
 
     // 2. Run workload
