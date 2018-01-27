@@ -101,10 +101,10 @@ void run_test(int isMax){
     int freq = set_CPU_freq(isMax);
     // 2. Run workload
     printf("Characterization starts.\n");
-    PerfData* perf_msmts[MAX_CPU_IN_RPI3];
-    TimeType start_time = run_workload_timed(perf_msmts);
+    PerfData perf_msmts[MAX_CPU_IN_RPI3];
+    TimeType start_time = run_workload_timed(&perf_msmts);
     // 3. Here, we get elapsed time and performance counters.
-    report_perf_msmts(perf_msmts, freq, start_time);
+    report_perf_msmts(&perf_msmts, freq, start_time);
     // 4. Finish the program
     cleanup();
 }
