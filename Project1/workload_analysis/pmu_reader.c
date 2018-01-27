@@ -6,8 +6,8 @@
 
 // pmu_reader.h: PMU Reading interface
 
-#define PMXEVCNTR_READ "mrc p15, 0, %0, c9, c12, 2\n\t" : "=r"
 #define PMSELR_WRITE "mcr p15, 0, %0, c9, c12, 5\n\t" :: "r"
+#define PMXEVCNTR_READ "mrc p15, 0, %0, c9, c13, 2\n\t" : "=r"
 
 void reset_counters(void) {
     // Reset all cycle counter and event counters
