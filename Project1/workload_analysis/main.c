@@ -179,24 +179,7 @@ int main(int argc, char *argv[]) {
         // 0. Initialize the workload
         // ****** YOU MAY NEED TO CHANGE HERE TO TEST OTHER WORKLOADS *******
         printf("Initialization.\n");
-//        run_tests();
-//        REGISTER_WL1;
-//        REGISTER_WL2;
-//        REGISTER_WL3;
-//
-//        // 1. Set CPU frequency
-//        // ****** YOU MAY NEED TO CHANGE THIS TO USE set_by_min_freq() ******
-//        int isMax = TRUE;
-//        int freq = set_CPU_freq(isMax);
-//
-//        // 2. Run workload
-//        PerfData* perf_msmts= setup_and_run_workload();
-//
-//        // 3. Here, we get elapsed time and performance counters.
-//        report_perf_msmts(&perf_msmts, freq, start_time);
-//
-//        // 4. Finish the program
-//        cleanup();
+        run_tests();
 
     // 0. Initialize the workload
     // ****** YOU MAY NEED TO CHANGE HERE TO TEST OTHER WORKLOADS *******
@@ -205,26 +188,26 @@ int main(int argc, char *argv[]) {
 
     // 1. Set CPU frequency
     // ****** YOU MAY NEED TO CHANGE THIS TO USE set_by_min_freq() ******
-    printf("Setting governor.\n");
-    set_userspace_governor();
-    printf("Setting MAX_FREQ.\n");
-    set_by_max_freq();
-    printf("getting CUR_FREQ.\n");
-    int freq = get_cur_freq();
-
-    // 2. Run workload
-    printf("Characterization starts.\n");
-    PerfData perf_msmts[MAX_CPU_IN_RPI3];
-    TimeType start_time = get_current_time_us();
-    run_workloads(perf_msmts);
-
-    // 3. Here, we get elapsed time and performance counters.
-    printf("Total Execution time (us): %lld at %d\n",
-           get_current_time_us() - start_time, get_cur_freq());
-    report_measurement(freq, perf_msmts);
-
-    // 4. Finish the program
-    unregister_workload_all();
-    set_ondemand_governor();
+//    printf("Setting USERSPACE GOVERNOR.\n");
+//    set_userspace_governor();
+//    printf("Setting MAX_FREQ.\n");
+//    set_by_max_freq();
+//    printf("getting CUR_FREQ.\n");
+//    int freq = get_cur_freq();
+//
+//    // 2. Run workload
+//    printf("Characterization starts.\n");
+//    PerfData perf_msmts[MAX_CPU_IN_RPI3];
+//    TimeType start_time = get_current_time_us();
+//    run_workloads(perf_msmts);
+//
+//    // 3. Here, we get elapsed time and performance counters.
+//    printf("Total Execution time (us): %lld at %d\n",
+//           get_current_time_us() - start_time, get_cur_freq());
+//    report_measurement(freq, perf_msmts);
+//
+//    // 4. Finish the program
+//    unregister_workload_all();
+//    set_ondemand_governor();
     return 0;
 }

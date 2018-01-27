@@ -79,12 +79,12 @@ void register_workload(
     cpu_set_t cpus;
     CPU_ZERO(&cpus);
     CPU_SET(core, &cpus);
-    printf("THREADING to init workload.\n");
+//    printf("THREADING to init workload.\n");
 
     pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpus);
-    printf("CREATING threads.\n");
+//    printf("CREATING threads.\n");
     pthread_create(&thread, &attr, (void*)init_funcs[core], NULL);
-    printf("JOINING threads.\n");
+//    printf("JOINING threads.\n");
     pthread_join(thread, &work_rptrs[core]);
 
 }
