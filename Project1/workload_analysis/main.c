@@ -73,7 +73,7 @@ int set_CPU_freq(int isMax){
 PerfData* init_performance_measurements(){
     printf("Characterization starts.\n");
 //    PerfData* perf_msmts[MAX_CPU_IN_RPI3];
-    PerfData* perf_msmts = (PerfData*)malloc(MAX_CPU_IN_RPI3 * sizeof(PerfData));
+//    PerfData* perf_msmts = malloc(MAX_CPU_IN_RPI3 * sizeof(*perf_msmts));
     return perf_msmts;
 }
 
@@ -100,7 +100,8 @@ void run_test(int isMax){
     // 1. Set CPU frequency
     int freq = set_CPU_freq(isMax);
     // 2. Run workload
-    PerfData* perf_msmts= init_performance_measurements();
+    printf("Characterization starts.\n");
+    PerfData* perf_msmts[MAX_CPU_IN_RPI3];
     TimeType start_time = run_workload_timed(perf_msmts);
     // 3. Here, we get elapsed time and performance counters.
     report_perf_msmts(perf_msmts, freq, start_time);
