@@ -66,13 +66,20 @@ static void inline readSensors(SharedVariable* sv) {
 }
 static void inline checkSensors(SharedVariable* sv) {
 
-  if(sv->buttonPress == LOW){
+  if(digitalRead(PIN_BUTTON) == LOW){
+    while(digitalRead(PIN_BUTTON) == LOW)
+      ;// eat up remainder button press
     sv->running = !sv->running;
   }
-  if(sv->smallAudioSensor == LOW){
+  if(digitalRead(PIN_SMALL) == LOW){
+    while (digitalRead(PIN_SMALL)== LOW)
+      ;// eat up remainder audio
+
     sv->smallOn = !sv->smallOn;
   }
-  if(sv->bigAudioSensor == LOW){
+  if(digitalRead(PIN_BIG) == LOW){
+    while (digitalRead(PIN_BIG) == LOW)
+      ;// eat up remainder audio
     sv->bigOn = !sv->bigOn;
   }
 }
@@ -130,7 +137,7 @@ static void inline smallSoundOff(SharedVariable* sv) {
   //DIP RGB LED is BLUE if small audio sensor gives 0
   DIPBlue(sv);
   //0 1 case => Yellow
-  if (sv->bigAudioSensor == HIGH){
+  if (sv->bigOn == 1){
     SMDYellow(sv);
   }
     //0 0 case => Red
@@ -143,7 +150,7 @@ static void inline smallSoundOn(SharedVariable* sv) {
   //DIP RGB LED is RED if small audio sensor gives 1
   DIPRed(sv);
         //1 1 case => Cyan
-  if (sv->bigAudioSensor == HIGH){
+  if (sv->bigOn == 1){
     SMDCyan(sv);
   }
       //1 0 case => Purple
@@ -157,7 +164,7 @@ static void inline runningState(SharedVariable* sv){
   digitalWrite(PIN_ALED, HIGH);  //AUTO-FLASH led on
 
   // 1 - case
-  if (sv->smallAudioSensor == HIGH){
+  if (sv->smallOn == 1){
    smallSoundOn(sv);
   }
     // 0 - case
@@ -170,9 +177,12 @@ static void inline pauseState(SharedVariable* sv) {
   // buttonPress == LOW
 //  printf("ALED off.\n");
   digitalWrite(PIN_ALED, LOW);  //AUTO-FLASH led off
+  sv->smallOn = 0;
+  sv->bigOn = 0;
 
   //turn off DIP leds
   DIP_LED_Set(0x00,0x00,0x00);
+
 //
 //  softPwmWrite(PIN_DIP_RED, 0x00); //turn off if previously turned on
 //  softPwmWrite(PIN_DIP_GRN, 0x00); //turn off for good measure
@@ -199,7 +209,7 @@ void program_body(SharedVariable* sv) {
 
     // - Don't make any delay using delay(), sleep(), etc
 
-  readSensors(sv);
+//  readSensors(sv);
   checkSensors(sv);
 
                     /*RUNNING State*/
