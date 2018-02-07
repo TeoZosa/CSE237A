@@ -12,6 +12,9 @@ typedef struct shared_variable {
 	int buttonPress;
 	int smallAudioSensor;
 	int bigAudioSensor;
+	int running;
+	int smallOn;
+	int bigOn;
 
 } SharedVariable;
 

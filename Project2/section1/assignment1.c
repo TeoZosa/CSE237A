@@ -17,6 +17,9 @@ void program_init(SharedVariable* sv) {
 
   /*Initialize shared variables.*/
 	sv->bProgramExit = 0;
+  sv->running = 1;
+  sv->smallOn = 0;
+  sv->bigOn = 0;
 
                 // You also need to initalize sensors here
   printf("Initializing INPUTS.\n");
@@ -57,23 +60,30 @@ void program_init(SharedVariable* sv) {
 }
 
 static void inline readSensors(SharedVariable* sv) {
-  printf("READING sensors.\n");
   sv->buttonPress = digitalRead(PIN_BUTTON);
   sv->smallAudioSensor = digitalRead(PIN_SMALL);
   sv->bigAudioSensor = digitalRead(PIN_BIG);
-  printf("button press = %d.\n", sv->buttonPress);
-  printf("small audio = %d.\n", sv->smallAudioSensor);
-  printf("big audio  = %d.\n", sv->bigAudioSensor)
+}
+static void inline checkSensors(SharedVariable* sv) {
 
+  if(sv->buttonPress == LOW){
+    sv->running = !sv->running;
+  }
+  if(sv->smallAudioSensor == LOW){
+    sv->smallOn = !sv->smallOn;
+  }
+  if(sv->bigAudioSensor == LOW){
+    sv->bigOn = !sv->bigOn;
+  }
 }
 
-static void inline SMD_LED_Set(int red, int green, int blue) {
+static void inline SMD_LED_Set(unsigned char red, unsigned char green, unsigned char blue) {
   softPwmWrite(PIN_SMD_RED, red); //
   softPwmWrite(PIN_SMD_GRN, green);//
   softPwmWrite(PIN_SMD_BLU, blue);//
 }
 
-static void inline DIP_LED_Set(int red, int green, int blue) {
+static void inline DIP_LED_Set(unsigned char red, unsigned char green, unsigned char blue) {
   softPwmWrite(PIN_DIP_RED, red); //DIP RGB LED is RED if small audio sensor gives 1
   softPwmWrite(PIN_DIP_GRN, green); //turn off if previously turned on
   softPwmWrite(PIN_DIP_BLU, blue); //turn off if previously turned on
@@ -143,7 +153,7 @@ static void inline smallSoundOn(SharedVariable* sv) {
 }
 
 static void inline runningState(SharedVariable* sv){
-  printf("ALED on.\n");
+//  printf("ALED on.\n");
   digitalWrite(PIN_ALED, HIGH);  //AUTO-FLASH led on
 
   // 1 - case
@@ -158,7 +168,7 @@ static void inline runningState(SharedVariable* sv){
 
 static void inline pauseState(SharedVariable* sv) {
   // buttonPress == LOW
-  printf("ALED off.\n");
+//  printf("ALED off.\n");
   digitalWrite(PIN_ALED, LOW);  //AUTO-FLASH led off
 
   //turn off DIP leds
@@ -190,15 +200,16 @@ void program_body(SharedVariable* sv) {
     // - Don't make any delay using delay(), sleep(), etc
 
   readSensors(sv);
+  checkSensors(sv);
 
                     /*RUNNING State*/
-  if (sv->buttonPress == HIGH){
-    printf("RUN state.\n");
+  if (sv->running == 1){
+//    printf("RUN state.\n");
     runningState(sv);
   }
                   /*PAUSE state*/
   else{
-    printf("PAUSE state.\n");
+//    printf("PAUSE state.\n");
     pauseState(sv);
   }
 }
