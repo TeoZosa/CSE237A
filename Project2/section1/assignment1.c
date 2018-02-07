@@ -19,24 +19,31 @@ void program_init(SharedVariable* sv) {
 	sv->bProgramExit = 0;
 
                 // You also need to initalize sensors here
+  printf("Initializing INPUTS.\n");
 
   /* Define Input Interfaces*/
   pinMode (PIN_BUTTON, INPUT);
   pinMode (PIN_SMALL, INPUT);
   pinMode (PIN_BIG, INPUT);
 
+  printf("Initializing SMD.\n");
 
   /*Create the SMD RGB led PWM*/
   softPwmCreate(PIN_SMD_RED, 0, 0xFF);
   softPwmCreate(PIN_SMD_GRN, 0, 0xFF);
   softPwmCreate(PIN_SMD_BLU, 0, 0xFF);
 
+  printf("Initializing DIP.\n");
+
   /*Create the DIP RGB leds PWM*/
   softPwmCreate(PIN_DIP_RED, 0, 0xFF);
   softPwmCreate(PIN_DIP_GRN, 0, 0xFF);
   softPwmCreate(PIN_DIP_BLU, 0, 0xFF);
 
-            /*Define Output Interfaces*/
+
+  printf("Initializing OUTPUTS.\n");
+
+  /*Define Output Interfaces*/
   pinMode (PIN_ALED, OUTPUT); // define AUTOFLASH led as output interface
   
   pinMode (PIN_DIP_RED, OUTPUT); // define DIP_RED as output interface
@@ -50,9 +57,14 @@ void program_init(SharedVariable* sv) {
 }
 
 static void inline readSensors(SharedVariable* sv) {
+  printf("READING sensors.\n");
   sv->buttonPress = digitalRead(PIN_BUTTON);
   sv->smallAudioSensor = digitalRead(PIN_SMALL);
   sv->bigAudioSensor = digitalRead(PIN_BIG);
+  printf("button press = %d.\n", sv->buttonPress);
+  printf("small audio = %d.\n", sv->smallAudioSensor);
+  printf("big audio  = %d.\n", sv->bigAudioSensor)
+
 }
 
 static void inline SMD_LED_Set(int red, int green, int blue) {
@@ -131,6 +143,7 @@ static void inline smallSoundOn(SharedVariable* sv) {
 }
 
 static void inline runningState(SharedVariable* sv){
+  printf("ALED on.\n");
   digitalWrite(PIN_ALED, HIGH);  //AUTO-FLASH led on
 
   // 1 - case
@@ -145,6 +158,7 @@ static void inline runningState(SharedVariable* sv){
 
 static void inline pauseState(SharedVariable* sv) {
   // buttonPress == LOW
+  printf("ALED off.\n");
   digitalWrite(PIN_ALED, LOW);  //AUTO-FLASH led off
 
   //turn off DIP leds
@@ -179,10 +193,12 @@ void program_body(SharedVariable* sv) {
 
                     /*RUNNING State*/
   if (sv->buttonPress == HIGH){
+    printf("RUN state.\n");
     runningState(sv);
   }
                   /*PAUSE state*/
   else{
+    printf("PAUSE state.\n");
     pauseState(sv);
   }
 }
