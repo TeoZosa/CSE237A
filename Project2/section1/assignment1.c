@@ -64,26 +64,29 @@ static void inline readSensors(SharedVariable* sv) {
   sv->smallAudioSensor = digitalRead(PIN_SMALL);
   sv->bigAudioSensor = digitalRead(PIN_BIG);
 }
-static void inline checkSensors(SharedVariable* sv) {
+static void inline checkButton(SharedVariable* sv) {
 
   if(digitalRead(PIN_BUTTON) == LOW){
     while(digitalRead(PIN_BUTTON) == LOW)
       ;// eat up remainder button press
     sv->running = !sv->running;
   }
-  if(digitalRead(PIN_SMALL) == LOW){
-    while (digitalRead(PIN_SMALL)== LOW)
-      ;// eat up remainder audio
 
+}
+static void inline checkMicrophones(SharedVariable* sv) {
+  if (digitalRead(PIN_SMALL) == LOW) {
+    while (digitalRead(PIN_SMALL) == LOW)
+      ;// eat up remainder audio
     sv->smallOn = !sv->smallOn;
   }
-  if(digitalRead(PIN_BIG) == LOW){
+
+  if (digitalRead(PIN_BIG) == LOW) {
     while (digitalRead(PIN_BIG) == LOW)
       ;// eat up remainder audio
     sv->bigOn = !sv->bigOn;
   }
-}
 
+}
 static void inline SMD_LED_Set(unsigned char red, unsigned char green, unsigned char blue) {
   softPwmWrite(PIN_SMD_RED, red); //
   softPwmWrite(PIN_SMD_GRN, green);//
@@ -215,6 +218,7 @@ void program_body(SharedVariable* sv) {
                     /*RUNNING State*/
   if (sv->running == 1){
 //    printf("RUN state.\n");
+    checkMicrophones(sv);
     runningState(sv);
   }
                   /*PAUSE state*/
