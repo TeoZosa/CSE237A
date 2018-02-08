@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 #include "section1.h"
 #include "section2.h"
@@ -19,7 +21,8 @@
 #include "pmu_reader.h"
 
 // FREQ_CTL_MIN, FREQ_CTL_MAX is defined here
-#include "scheduler.h"      
+#include "scheduler.h"
+#include "shared_var.h"
 
 //typedef struct
 //{    int wl;
@@ -254,24 +257,73 @@ TaskSelection select_workload(
 // You may implement some code to evaluate performance and power consumption.
 // (This is called in main_section2.c)
 
-static inline void sort6_sorting_network_simple_swap(int * d){
-#define min(x, y) (x<y?x:y)
-#define max(x, y) (x<y?y:x)
-#define SWAP(x,y) { const int a = min(d[x], d[y]); \
-                    const int b = max(d[x], d[y]); \
-                    d[x] = a; d[y] = b; }
-  SWAP(1, 2);
-  SWAP(4, 5);
-  SWAP(0, 2);
-  SWAP(3, 5);
+//custom fast sort since we know the # of workloads in advance.
+static inline void sorting_network(WLxTime * workloads){
+  #define min(x, y) (((x).time)<((y).time)?(x):(y))
+  #define max(x, y) (((x).time)<((y).time)?(y):(x))
+  #define SWAP(x,y) { const WLxTime shorter = min(workloads[x], workloads[y]); \
+                    const WLxTime longer = max(workloads[x], workloads[y]); \
+                    workloads[x] = shorter; workloads[y] = longer; }
   SWAP(0, 1);
-  SWAP(3, 4);
-  SWAP(1, 4);
-  SWAP(0, 3);
-  SWAP(2, 5);
-  SWAP(1, 3);
-  SWAP(2, 4);
   SWAP(2, 3);
+  SWAP(4, 5);
+  SWAP(6, 7);
+  SWAP(8, 9);
+  SWAP(10, 11);
+  SWAP(12, 13);
+  SWAP(14, 15);
+  SWAP(0, 2);
+  SWAP(4, 6);
+  SWAP(8, 10);
+  SWAP(12, 14);
+  SWAP(1, 3);
+  SWAP(5, 7);
+  SWAP(9, 11);
+  SWAP(13, 15);
+  SWAP(0, 4);
+  SWAP(8, 12);
+  SWAP(1, 5);
+  SWAP(9, 13);
+  SWAP(2, 6);
+  SWAP(10, 14);
+  SWAP(3, 7);
+  SWAP(11, 15);
+  SWAP(0, 8);
+  SWAP(1, 9);
+  SWAP(2, 10);
+  SWAP(3, 11);
+  SWAP(4, 12);
+  SWAP(5, 13);
+  SWAP(6, 14);
+  SWAP(7, 15);
+  SWAP(5, 10);
+  SWAP(6, 9);
+  SWAP(3, 12);
+  SWAP(13, 14);
+  SWAP(7, 11);
+  SWAP(1, 2);
+  SWAP(4, 8);
+  SWAP(1, 4);
+  SWAP(7, 13);
+  SWAP(2, 8);
+  SWAP(11, 14);
+  SWAP(2, 4);
+  SWAP(5, 6);
+  SWAP(9, 10);
+  SWAP(11, 13);
+  SWAP(3, 8);
+  SWAP(7, 12);
+  SWAP(6, 8);
+  SWAP(10, 12);
+  SWAP(3, 5);
+  SWAP(7, 9);
+  SWAP(3, 4);
+  SWAP(5, 6);
+  SWAP(7, 8);
+  SWAP(9, 10);
+  SWAP(11, 12);
+  SWAP(6, 7);
+  SWAP(8, 9);
 #undef SWAP
 #undef min
 #undef max
@@ -279,7 +331,14 @@ static inline void sort6_sorting_network_simple_swap(int * d){
 void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   sv->start_time = get_current_time_us();
-  qsort( sv->workloads, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+  sorting_network(sv->workloads);
+  WLxTime copy[16];
+  memcpy(copy, sv->workloads, sizeof(sv->workloads));
+  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
+//    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
+  }
 
 //  printf("Workloads sorted:\n");
 //  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
