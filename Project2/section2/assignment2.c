@@ -253,6 +253,29 @@ TaskSelection select_workload(
 // This function is called before scheduling 16 tasks.
 // You may implement some code to evaluate performance and power consumption.
 // (This is called in main_section2.c)
+
+static inline void sort6_sorting_network_simple_swap(int * d){
+#define min(x, y) (x<y?x:y)
+#define max(x, y) (x<y?y:x)
+#define SWAP(x,y) { const int a = min(d[x], d[y]); \
+                    const int b = max(d[x], d[y]); \
+                    d[x] = a; d[y] = b; }
+  SWAP(1, 2);
+  SWAP(4, 5);
+  SWAP(0, 2);
+  SWAP(3, 5);
+  SWAP(0, 1);
+  SWAP(3, 4);
+  SWAP(1, 4);
+  SWAP(0, 3);
+  SWAP(2, 5);
+  SWAP(1, 3);
+  SWAP(2, 4);
+  SWAP(2, 3);
+#undef SWAP
+#undef min
+#undef max
+}
 void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   sv->start_time = get_current_time_us();
