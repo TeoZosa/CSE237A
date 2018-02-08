@@ -254,7 +254,7 @@ static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
       if (schedulable_workloads[prospective_workload]) {//iterate over sorted workloads
         // available
         task_selection.task_idx = prospective_workload;
-        sv->scheduledWorkloads[w_idx] = 1;
+        sv->scheduledWorkloads[prospective_workload] = 1;
         break;
       }
     }
@@ -270,7 +270,7 @@ static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
         // and do the next one
         // available
         task_selection.task_idx = prospective_workload;
-        sv->scheduledWorkloads[w_idx] = 1;
+        sv->scheduledWorkloads[prospective_workload] = 1;
         break;
       }
     }
