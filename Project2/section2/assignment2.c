@@ -39,7 +39,6 @@ static void* sample3_exit(void*);
 
 
 static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
-WLxTime arr[16];
  const char* freq;
   if (isMax){
     set_by_max_freq();
@@ -52,24 +51,51 @@ WLxTime arr[16];
 
   int num_workloads = get_num_workloads();
   int w_idx;
+  int num_iterations = 50;
   printf("at %s freq.\n", freq);
+
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-    const WorkloadItem* workload_item = get_workload(w_idx);
+    const WorkloadItem *workload_item = get_workload(w_idx);
 
-    void* init_ret = workload_item->workload_init(NULL);
+    void *init_ret = workload_item->workload_init(NULL);
 
-    printf("Workload body %2d starts.\n", w_idx);
+//    printf("Workload body %2d starts.\n", w_idx);
     long long curTime = get_current_time_us();
-    void* body_ret = workload_item->workload_body(init_ret);
+    void *body_ret = workload_item->workload_body(init_ret);
 //    long long total_time = get_current_time_us() - curTime;
     int i_time = (int) (get_current_time_us() - curTime);
 //    printf("Workload body %2d finishes in %lld <=> %d \xC2\xB5s.\n", w_idx, total_time, i_time);
-    printf("Workload body %2d finishes in %d \xC2\xB5s.\n", w_idx, i_time);
+//    printf("Workload body %2d finishes in %d \xC2\xB5s.\n", w_idx, i_time);
 
     sv->workloads[w_idx].wl = w_idx;
     sv->workloads[w_idx].time = i_time;
 
-    void* exit_ret = workload_item->workload_exit(init_ret);
+    void *exit_ret = workload_item->workload_exit(init_ret);
+  }
+  //average execution times
+  for (int iterations = 1; iterations <num_iterations; ++iterations) {
+    for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+      const WorkloadItem *workload_item = get_workload(w_idx);
+
+      void *init_ret = workload_item->workload_init(NULL);
+
+//      printf("Workload body %2d starts.\n", w_idx);
+      long long curTime = get_current_time_us();
+      void *body_ret = workload_item->workload_body(init_ret);
+//    long long total_time = get_current_time_us() - curTime;
+      int i_time = (int) (get_current_time_us() - curTime);
+//    printf("Workload body %2d finishes in %lld <=> %d \xC2\xB5s.\n", w_idx, total_time, i_time);
+//      printf("Workload body %2d finishes in %d \xC2\xB5s.\n", w_idx, i_time);
+
+//      sv->workloads[w_idx].wl = w_idx;
+      sv->workloads[w_idx].time += i_time ;
+      if (iterations + 1 == num_iterations){
+        sv->workloads[w_idx].time /= num_iterations ;
+        printf("Workload body %2d finishes in %d \xC2\xB5s (AVG).\n", w_idx, sv->workloads[w_idx].time);
+      }
+
+      void *exit_ret = workload_item->workload_exit(init_ret);
+    }
   }
 
 
@@ -185,7 +211,6 @@ static inline TaskSelection naive_scheduler(SharedVariable* sv, const int core,
 
   // Choose the minimum frequency
   task_selection.freq = FREQ_CTL_MIN; // You can change this to FREQ_CTL_MAX
-
   int w_idx;
   int selected_worload_idx;
 
@@ -199,9 +224,9 @@ static inline TaskSelection naive_scheduler(SharedVariable* sv, const int core,
   return task_selection;
 }
 
-static inline TaskSelection EDF_scheduler(SharedVariable* sv, const int core,
-                                            const int num_workloads,
-                                            const bool* schedulable_workloads, const bool* finished_workloads){
+static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
+                                          const int num_workloads,
+                                          const bool *schedulable_workloads, const bool *finished_workloads){
   //////////////////////////////////////////////////////////////
   // Sample scheduler: A naive scheduler that satisfies the task dependency
   // This scheduler selects a possible task in order of the task index,
@@ -217,14 +242,37 @@ static inline TaskSelection EDF_scheduler(SharedVariable* sv, const int core,
   //set freq dynamically if next shortest job is 2x the time of this job? assumes CPU bound
 
   int w_idx;
-  int next_shortest_workload;
+  int prospective_workload;
+  if (core == 1){
+    //get a long job
+    for (w_idx = num_workloads-1; w_idx >= 0; --w_idx) {
+      // Choose one possible task
+      prospective_workload = sv->workloads[w_idx].wl;
+      if (finished_workloads[prospective_workload] || sv->scheduledWorkloads[prospective_workload]){
+        continue;
+      }
+      if (schedulable_workloads[prospective_workload]) {//iterate over sorted workloads
+        // available
+        task_selection.task_idx = prospective_workload;
+        sv->scheduledWorkloads[w_idx] = 1;
+        break;
+      }
+    }
+  } else {//get a short job
 
-  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-    // Choose one possible task
-    next_shortest_workload = sv->workloads[w_idx].wl;
-    if (schedulable_workloads[next_shortest_workload]) {//iterate over sorted workloads and do the next one available
-      task_selection.task_idx = next_shortest_workload;
-      break;
+    for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+      // Choose one possible task
+      prospective_workload = sv->workloads[w_idx].wl;
+      if (finished_workloads[prospective_workload] || sv->scheduledWorkloads[prospective_workload]){
+        continue;
+      }
+      else if (schedulable_workloads[prospective_workload] ) {//iterate over sorted workloads
+        // and do the next one
+        // available
+        task_selection.task_idx = prospective_workload;
+        sv->scheduledWorkloads[w_idx] = 1;
+        break;
+      }
     }
   }
   return task_selection;
@@ -249,7 +297,7 @@ TaskSelection select_workload(
 
 
 
-    return EDF_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
+    return SJF_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
     //////////////////////////////////////////////////////////////
 }
 
@@ -331,24 +379,25 @@ static inline void sorting_network(WLxTime * workloads){
 void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   sv->start_time = get_current_time_us();
-  long long s_start_time = get_current_time_us();
-  sorting_network(sv->workloads);
-  int sn_time = (int)(get_current_time_us()-s_start_time);
-  printf("Sorting Networks takes %d \xC2\xB5s.\n",sn_time);
-
-  WLxTime copy[16];
-  memcpy(copy, sv->workloads, sizeof(sv->workloads));
-
-  long long q_start_time = get_current_time_us();
-  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
-  int qs_time = (int)(get_current_time_us()-q_start_time);
-  printf("Quicksort takes %d \xC2\xB5s.\n", qs_time);
-
-    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
-    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
-//    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
-  }
-
+//  long long s_start_time = get_current_time_us();
+//  sorting_network(sv->workloads);
+//  int sn_time = (int)(get_current_time_us()-s_start_time);
+//  printf("Sorting Networks takes %d \xC2\xB5s.\n",sn_time);
+//
+//  WLxTime copy[16];
+//  memcpy(copy, sv->workloads, sizeof(sv->workloads));
+//
+//  long long q_start_time = get_current_time_us();
+//  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+//  int qs_time = (int)(get_current_time_us()-q_start_time);
+//  printf("Quicksort takes %d \xC2\xB5s.\n", qs_time);
+//
+//    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+//    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
+////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
+//  }
+  qsort( sv->workloads, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+  memset(sv->scheduledWorkloads, 0, sizeof(sv->scheduledWorkloads));
   printf("Workloads sorted:\n");
 //  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
 //    sv->sortedWorkloads[w_idx] = (unsigned short int) sv->workloads[w_idx].wl;
