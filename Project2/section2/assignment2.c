@@ -332,13 +332,13 @@ void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   sv->start_time = get_current_time_us();
   sorting_network(sv->workloads);
-  WLxTime copy[16];
-  memcpy(copy, sv->workloads, sizeof(sv->workloads));
-  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
-    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
-    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
-//    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
-  }
+//  WLxTime copy[16];
+//  memcpy(copy, sv->workloads, sizeof(sv->workloads));
+//  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+//    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+//    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
+////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
+//  }
 
 //  printf("Workloads sorted:\n");
 //  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
