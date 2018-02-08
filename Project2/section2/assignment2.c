@@ -331,9 +331,9 @@ static inline void sorting_network(WLxTime * workloads){
 void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   sv->start_time = get_current_time_us();
+  long long s_start_time = get_current_time_us();
   sorting_network(sv->workloads);
-  
-  int sn_time = (int)(get_current_time_us()-sv->start_time);
+  int sn_time = (int)(get_current_time_us()-s_start_time);
   printf("Sorting Networks takes %d \xC2\xB5s.\n",sn_time);
 
   WLxTime copy[16];
