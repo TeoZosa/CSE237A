@@ -21,28 +21,68 @@
 // FREQ_CTL_MIN, FREQ_CTL_MAX is defined here
 #include "scheduler.h"      
 
+typedef struct
+{    int wl;
+    int time;
+} WLxTime;
+
+const static char* max = "MAX";
+const static char* min = "MIN";
 // Functions related to Sample code 3.
 static void report_measurement(int, PerfData*);
 static void* sample3_init(void*);
 static void* sample3_body(void*);
 static void* sample3_exit(void*);
 
-static void run_workloads_sequential()  {
-  set_by_max_freq();
+int compare(const void *workload1, const void *workload2)
+{
+  return  ((WLxTime *)workload1)->time - ((WLxTime *)workload2)->time;
+}
+
+
+
+
+static void run_workloads_sequential(int isMax)  {
+WLxTime arr[16];
+ const char* freq;
+  if (isMax){
+    set_by_max_freq();
+    freq = max;
+  }
+  else{
+    set_by_min_freq();
+    freq = min;
+  }
+
   int num_workloads = get_num_workloads();
   int w_idx;
+  printf("at %s freq.\n", freq);
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     const WorkloadItem* workload_item = get_workload(w_idx);
 
     void* init_ret = workload_item->workload_init(NULL);
 
     printf("Workload body %2d starts.\n", w_idx);
+    long long curTime = get_current_time_us();
     void* body_ret = workload_item->workload_body(init_ret);
-    printf("Workload body %2d finishes.\n", w_idx);
+    long long total_time = get_current_time_us() - curTime;
+    int i_time = (int) total_time;
+    printf("Workload body %2d finishes in %lld <=> %d \xC2\xB5s.\n", w_idx, total_time, i_time);
+
+    arr[w_idx].wl = w_idx;
+    arr[w_idx].time = i_time;
 
     void* exit_ret = workload_item->workload_exit(init_ret);
   }
-}
+  qsort( arr, (size_t)num_workloads, sizeof(WLxTime), compare );
+
+  printf("Workloads sorted:\n");
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
+  }
+
+
+  }
 
 
 
