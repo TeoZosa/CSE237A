@@ -214,12 +214,13 @@ static inline TaskSelection EDF_scheduler(SharedVariable* sv, const int core,
   //set freq dynamically if next shortest job is 2x the time of this job? assumes CPU bound
 
   int w_idx;
-  int selected_worload_idx;
+  int next_shortest_workload;
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     // Choose one possible task
-    if (schedulable_workloads[sv->workloads[w_idx].wl]) {//iterate over sorted workloads and do the next one available
-      task_selection.task_idx = w_idx;
+    next_shortest_workload = sv->workloads[w_idx].wl;
+    if (schedulable_workloads[next_shortest_workload]) {//iterate over sorted workloads and do the next one available
+      task_selection.task_idx = next_shortest_workload;
       break;
     }
   }
