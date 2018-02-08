@@ -27,19 +27,86 @@ static void* sample3_init(void*);
 static void* sample3_body(void*);
 static void* sample3_exit(void*);
 
+static void run_workloads_sequential()  {
+  set_by_max_freq();
+  int num_workloads = get_num_workloads();
+  int w_idx;
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    const WorkloadItem* workload_item = get_workload(w_idx);
+
+    void* init_ret = workload_item->workload_init(NULL);
+
+    printf("Workload body %2d starts.\n", w_idx);
+    void* body_ret = workload_item->workload_body(init_ret);
+    printf("Workload body %2d finishes.\n", w_idx);
+
+    void* exit_ret = workload_item->workload_exit(init_ret);
+  }
+}
+
+
+
+static void print_task_path() {
+  int num_workloads = get_num_workloads();
+  int w_idx;
+  bool* is_starting_tasks = (bool*)malloc(num_workloads * sizeof(bool));
+
+  // 1. Find all starting tasks
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    is_starting_tasks[w_idx] = true;
+  }
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    int successor_idx = get_workload(w_idx)->successor_idx;
+    if (successor_idx == NULL_TASK)
+      continue;
+    is_starting_tasks[successor_idx] = false;
+  }
+
+  // 2. Print the path for each starting task
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    if (!is_starting_tasks[w_idx])
+      continue;
+
+    printf("%2d", w_idx);
+    int successor_idx = get_workload(w_idx)->successor_idx;
+    while (successor_idx != NULL_TASK) {
+      printf(" -> %2d", successor_idx);
+      successor_idx = get_workload(successor_idx)->successor_idx;
+    }
+    printf("\n");
+  }
+
+  free(is_starting_tasks);
+}
+
+static void profile_workloads(){
+  register_workload(0, sample3_init, sample3_body, sample3_exit);
+  PerfData perf_msmts[MAX_CPU_IN_RPI3];
+  run_workloads(perf_msmts);
+  report_measurement(get_cur_freq(), perf_msmts);
+  unregister_workload_all();
+}
+
+
 // You can characterize the given workloads with the task graph
 // in this function to make your scheduling strategies.
 // This is called the start part of the program before the scheduling.
 // You need to learn the characteristics within 300 seconds.
 // (See main_section2.c)
+
 void learn_workloads(SharedVariable* sv) {
+
 	// TODO: Fill the body
+
 	// This function is executed before the scheduling simulation.
+
+
 	// You need to characterize the workloads (e.g., the execution time and
     // memory access patterns) with the task graphs
 
 	// Tip 1. You can get the current time here like:
 	// long long curTime = get_current_time_us();
+
     // Tip 2. You can also use your kernel module to read PMU events,
     // and provided workload profiling code in the same way to the part 1.
 
@@ -47,60 +114,17 @@ void learn_workloads(SharedVariable* sv) {
     // Sample code 1: Running all tasks on the current running core
     // This executes all tasks one-by-one at the maximum frequency
     //////////////////////////////////////////////////////////////
-    {
-        set_by_max_freq();
-        int num_workloads = get_num_workloads();
-        int w_idx;
-        for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-            const WorkloadItem* workload_item = get_workload(w_idx);
 
-            void* init_ret = workload_item->workload_init(NULL);
+  run_workloads_sequential();
 
-            printf("Workload body %2d starts.\n", w_idx);
-            void* body_ret = workload_item->workload_body(init_ret);
-            printf("Workload body %2d finishes.\n", w_idx);
-
-            void* exit_ret = workload_item->workload_exit(init_ret);
-        }
-    }
     //////////////////////////////////////////////////////////////
     
     //////////////////////////////////////////////////////////////
     // Sample code 2: Print a task path for each starting task
     // This prints the task path from each statring task to the end
     //////////////////////////////////////////////////////////////
-    {
-        int num_workloads = get_num_workloads();
-        int w_idx;
-        bool* is_starting_tasks = (bool*)malloc(num_workloads * sizeof(bool));
+  print_task_path();
 
-        // 1. Find all starting tasks
-        for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-            is_starting_tasks[w_idx] = true;
-        }
-        for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-            int successor_idx = get_workload(w_idx)->successor_idx;
-            if (successor_idx == NULL_TASK)
-                continue;
-            is_starting_tasks[successor_idx] = false;
-        }
-
-        // 2. Print the path for each starting task
-        for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-            if (!is_starting_tasks[w_idx])
-                continue;
-
-            printf("%2d", w_idx);
-            int successor_idx = get_workload(w_idx)->successor_idx;
-            while (successor_idx != NULL_TASK) {
-                printf(" -> %2d", successor_idx);
-                successor_idx = get_workload(successor_idx)->successor_idx;
-            }
-            printf("\n");
-        }
-
-        free(is_starting_tasks);
-    }
     //////////////////////////////////////////////////////////////
     
     //////////////////////////////////////////////////////////////
@@ -109,47 +133,60 @@ void learn_workloads(SharedVariable* sv) {
     // See also sample3_init(), sample3_body(), and sample3_exit()
     // at the end of this file.
     //////////////////////////////////////////////////////////////
-    register_workload(0, sample3_init, sample3_body, sample3_exit);
-    PerfData perf_msmts[MAX_CPU_IN_RPI3];
-    run_workloads(perf_msmts);
-    report_measurement(get_cur_freq(), perf_msmts);
-    unregister_workload_all();
+
+ profile_workloads();
     //////////////////////////////////////////////////////////////
 }
 
+
+
+static inline TaskSelection naive_scheduler(SharedVariable* sv, const int core,
+                                            const int num_workloads,
+                                            const bool* schedulable_workloads, const bool* finished_workloads){
+  //////////////////////////////////////////////////////////////
+  // Sample scheduler: A naive scheduler that satisfies the task dependency
+  // This scheduler selects a possible task in order of the task index,
+  // and always uses the minumum frequency.
+  // This doesn't guarantee any of task deadlines.
+  //////////////////////////////////////////////////////////////
+  TaskSelection task_selection;
+
+  // Choose the minimum frequency
+  task_selection.freq = FREQ_CTL_MIN; // You can change this to FREQ_CTL_MAX
+
+  int w_idx;
+  int selected_worload_idx;
+
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    // Choose one possible task
+    if (schedulable_workloads[w_idx]) {
+      task_selection.task_idx = w_idx;
+      break;
+    }
+  }
+  return task_selection;
+}
 // Select a workload index among schedulable workloads.
+
 // This is called by the provided scheduler base (schedule() function.)
-// You have to return a TaskSelection structure specifying
-// the selected task index and the frequency (FREQ_CTL_MIN or FREQ_CTL_MAX)
-// that you want to execute.
+
+              /* You have to return a TaskSelection structure specifying
+               * the selected task index and the frequency (FREQ_CTL_MIN or FREQ_CTL_MAX)
+               * that you want to execute.
+                 */
 TaskSelection select_workload(
         SharedVariable* sv, const int core,
         const int num_workloads,
         const bool* schedulable_workloads, const bool* finished_workloads) {
-	// TODO: Fill the body
-    // This function is executed inside of the provided scheduler code.
+
+                // TODO: Fill the body
+
+                // This function is executed inside of the provided scheduler code.
     // You need to implement an energy-efficient LIST scheduler.
 
-    //////////////////////////////////////////////////////////////
-    // Sample scheduler: A naive scheduler that satisfies the task dependency
-    // This scheduler selects a possible task in order of the task index,
-    // and always uses the minumum frequency.
-    // This doesn't guarantee any of task deadlines.
-    //////////////////////////////////////////////////////////////
-    TaskSelection task_selection;
-    int w_idx;
-    int selected_worload_idx;
-    for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-        // Choose one possible task
-        if (schedulable_workloads[w_idx]) {
-            task_selection.task_idx = w_idx;
-            break;
-        }
-    }
 
-    // Choose the minimum frequency
-    task_selection.freq = FREQ_CTL_MIN; // You can change this to FREQ_CTL_MAX
-    return task_selection;
+
+    return naive_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
     //////////////////////////////////////////////////////////////
 }
 
