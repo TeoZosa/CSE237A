@@ -21,10 +21,10 @@
 // FREQ_CTL_MIN, FREQ_CTL_MAX is defined here
 #include "scheduler.h"      
 
-typedef struct
-{    int wl;
-    int time;
-} WLxTime;
+//typedef struct
+//{    int wl;
+//    int time;
+//} WLxTime;
 
 const static char* max = "MAX";
 const static char* min = "MIN";
@@ -34,15 +34,8 @@ static void* sample3_init(void*);
 static void* sample3_body(void*);
 static void* sample3_exit(void*);
 
-int compare(const void *workload1, const void *workload2)
-{
-  return  ((WLxTime *)workload1)->time - ((WLxTime *)workload2)->time;
-}
 
-
-
-
-static void run_workloads_sequential(int isMax)  {
+static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
 WLxTime arr[16];
  const char* freq;
   if (isMax){
@@ -65,21 +58,17 @@ WLxTime arr[16];
     printf("Workload body %2d starts.\n", w_idx);
     long long curTime = get_current_time_us();
     void* body_ret = workload_item->workload_body(init_ret);
-    long long total_time = get_current_time_us() - curTime;
-    int i_time = (int) total_time;
-    printf("Workload body %2d finishes in %lld <=> %d \xC2\xB5s.\n", w_idx, total_time, i_time);
+//    long long total_time = get_current_time_us() - curTime;
+    int i_time = (int) (get_current_time_us() - curTime);
+//    printf("Workload body %2d finishes in %lld <=> %d \xC2\xB5s.\n", w_idx, total_time, i_time);
+    printf("Workload body %2d finishes in %d \xC2\xB5s.\n", w_idx, i_time);
 
-    arr[w_idx].wl = w_idx;
-    arr[w_idx].time = i_time;
+    sv->workloads[w_idx].wl = w_idx;
+    sv->workloads[w_idx].time = i_time;
 
     void* exit_ret = workload_item->workload_exit(init_ret);
   }
-  qsort( arr, (size_t)num_workloads, sizeof(WLxTime), compare );
 
-  printf("Workloads sorted:\n");
-  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
-  }
 
 
   }
@@ -155,8 +144,8 @@ void learn_workloads(SharedVariable* sv) {
     // This executes all tasks one-by-one at the maximum frequency
     //////////////////////////////////////////////////////////////
 
-  run_workloads_sequential(0);//MIN
-  run_workloads_sequential(1);//MAX
+//  run_workloads_sequential(0);//MIN
+  run_workloads_sequential(1, sv);//MAX
     //////////////////////////////////////////////////////////////
     
     //////////////////////////////////////////////////////////////
@@ -206,6 +195,36 @@ static inline TaskSelection naive_scheduler(SharedVariable* sv, const int core,
   }
   return task_selection;
 }
+
+static inline TaskSelection EDF_scheduler(SharedVariable* sv, const int core,
+                                            const int num_workloads,
+                                            const bool* schedulable_workloads, const bool* finished_workloads){
+  //////////////////////////////////////////////////////////////
+  // Sample scheduler: A naive scheduler that satisfies the task dependency
+  // This scheduler selects a possible task in order of the task index,
+  // and always uses the minumum frequency.
+  // This doesn't guarantee any of task deadlines.
+  //////////////////////////////////////////////////////////////
+  TaskSelection task_selection;
+
+  // Choose the minimum frequency
+  task_selection.freq = FREQ_CTL_MAX; // You can change this to FREQ_CTL_MAX
+
+
+  //set freq dynamically if next shortest job is 2x the time of this job? assumes CPU bound
+
+  int w_idx;
+  int selected_worload_idx;
+
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    // Choose one possible task
+    if (schedulable_workloads[sv->workloads[w_idx].wl]) {//iterate over sorted workloads and do the next one available
+      task_selection.task_idx = w_idx;
+      break;
+    }
+  }
+  return task_selection;
+}
 // Select a workload index among schedulable workloads.
 
 // This is called by the provided scheduler base (schedule() function.)
@@ -226,7 +245,7 @@ TaskSelection select_workload(
 
 
 
-    return naive_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
+    return EDF_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
     //////////////////////////////////////////////////////////////
 }
 
@@ -235,6 +254,14 @@ TaskSelection select_workload(
 // (This is called in main_section2.c)
 void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
+  sv->start_time = get_current_time_us();
+  qsort( sv->workloads, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+
+//  printf("Workloads sorted:\n");
+//  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+//    sv->sortedWorkloads[w_idx] = (unsigned short int) sv->workloads[w_idx].wl;
+////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
+//  }
 }
 
 // This function is called whenever all workloads in the task graph 
@@ -243,6 +270,12 @@ void start_scheduling(SharedVariable* sv) {
 // (This is called in main_section2.c)
 void finish_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
+  int time = (int)(get_current_time_us() - sv->start_time);
+  double pow = (double) ((
+                                 (time)/(1000 * 1000))
+                         * (1050));//if max
+  printf("Power: %f mW.\nRun Time: %d\xC2\xB5s.\n", pow, time);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
