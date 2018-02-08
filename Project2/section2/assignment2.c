@@ -332,15 +332,24 @@ void start_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   sv->start_time = get_current_time_us();
   sorting_network(sv->workloads);
-//  WLxTime copy[16];
-//  memcpy(copy, sv->workloads, sizeof(sv->workloads));
-//  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
-//    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
-//    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
-////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
-//  }
+  
+  int sn_time = (int)(get_current_time_us()-sv->start_time);
+  printf("Sorting Networks takes %d \xC2\xB5s.\n",sn_time);
 
-//  printf("Workloads sorted:\n");
+  WLxTime copy[16];
+  memcpy(copy, sv->workloads, sizeof(sv->workloads));
+
+  long long q_start_time = get_current_time_us();
+  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+  int qs_time = (int)(get_current_time_us()-q_start_time);
+  printf("Quicksort takes %d \xC2\xB5s.\n", qs_time);
+
+    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
+//    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
+  }
+
+  printf("Workloads sorted:\n");
 //  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
 //    sv->sortedWorkloads[w_idx] = (unsigned short int) sv->workloads[w_idx].wl;
 ////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
