@@ -24,19 +24,13 @@ static int compare(const void *workload1, const void *workload2)
 // If needed, you can add anything in this structure.
 typedef struct shared_variable {
 	int bProgramExit; // Once it is set to 1, the program will be terminated.
-	int buttonPress;
-	int smallAudioSensor;
-	int bigAudioSensor;
 	int running;
 	int smallOn;
 	int bigOn;
 	long long start_time;
 
-
-
-		unsigned short int sortedWorkloads[NUM_WORKLOADS];
+  unsigned short int scheduledWorkloads[NUM_WORKLOADS];
 	WLxTime workloads[NUM_WORKLOADS];
-
 
 } SharedVariable;
 
