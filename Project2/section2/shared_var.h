@@ -1,6 +1,5 @@
 // UCSD CSE237A - WI18
 // Important! You WILL SUBMIT this file.
-// Replace this with your implementation of Section 2
 #ifndef _SHARED_VAR_H_
 #define _SHARED_VAR_H_
 
@@ -10,6 +9,12 @@
 // If needed, you can add anything in this structure.
 typedef struct shared_variable {
 	int bProgramExit; // Once it is set to 1, the program will be terminated.
+	int buttonPress;
+	int smallAudioSensor;
+	int bigAudioSensor;
+	int running;
+	int smallOn;
+	int bigOn;
 
 } SharedVariable;
 

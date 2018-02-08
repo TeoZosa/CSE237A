@@ -1,11 +1,13 @@
 // UCSD CSE237A - WI18
 
-// Important! REPLACE this with your implementation of Part 1
+// Important! SUMBIT this file in the part1 project.
+// You only need to change the "get_single_event()" function.
 // For more details, please see the instructions in the class website.
 
 // pmu_reader.h: PMU Reading interface
 
-#include "pmu_reader.h"
+#define PMSELR_WRITE "mcr p15, 0, %0, c9, c12, 5\n\t" :: "r"
+#define PMXEVCNTR_READ "mrc p15, 0, %0, c9, c13, 2\n\t" : "=r"
 
 void reset_counters(void) {
     // Reset all cycle counter and event counters
@@ -30,11 +32,12 @@ unsigned int get_cyclecount(void) {
 // #define CNT_LLC_ACSS 0x03
 // #define CNT_LLC_MISS 0x04
 // #define CNT_TLB_MISS 0x05
+
+
 unsigned int get_single_event(unsigned int cnt_index) {
     unsigned int value = 0;
-
-    // Implement your code here
-
+    asm volatile(PMSELR_WRITE (cnt_index));
+    asm volatile(PMXEVCNTR_READ (value));
     return value;
 }
 
