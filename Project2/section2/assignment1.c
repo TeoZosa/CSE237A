@@ -46,11 +46,7 @@ void program_init(SharedVariable* sv) {
 
 }
 
-static void inline readSensors(SharedVariable* sv) {
-  sv->buttonPress = digitalRead(PIN_BUTTON);
-  sv->smallAudioSensor = digitalRead(PIN_SMALL);
-  sv->bigAudioSensor = digitalRead(PIN_BIG);
-}
+
 
 static void inline checkButton(SharedVariable* sv) {
 
