@@ -12,7 +12,7 @@ typedef struct
 		int time;
 } WLxTime;
 
-int compare(const void *workload1, const void *workload2)
+static int compare(const void *workload1, const void *workload2)
 {
 	return  ((WLxTime *)workload1)->time - ((WLxTime *)workload2)->time;
 }
