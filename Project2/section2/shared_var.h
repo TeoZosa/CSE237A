@@ -39,6 +39,8 @@ typedef struct shared_variable {
   bool is_first_run;
   bool is_max_freq;
   bool is_max_freq_best;
+	bool is_exec_time;
+	bool is_exec_time_best;
   double best_pow;
   WLxTime workloads_best_ordering[NUM_WORKLOADS];
 
