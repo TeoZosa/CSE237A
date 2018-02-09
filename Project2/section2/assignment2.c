@@ -354,7 +354,7 @@ void learn_workloads(SharedVariable* sv) {
 //    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
     printf("new w_idx %d ", sv->workloads[w_idx].wl);
   }
-  printf("exec_time sorted? %d\n", sv->is_exec_time_best);
+  printf("exec time sorted? %d\n", sv->is_exec_time_best);
   printf("is max freq? %d\n", sv->is_max_freq_best);
 
 
@@ -603,11 +603,13 @@ void finish_scheduling(SharedVariable* sv) {
     curr_freq_power = 450;
   }
   long long time = (get_current_time_us() - sv->start_time);
-  double pow =  (((double)(time)/(double)(1000 * 1000))
+  int sec = 1000 * 1000;
+  double pow =  (((double)(time)/(double)(sec))
                          * curr_freq_power);//if max
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
-  if(sv->is_first_run || (time < (1000*1000) && pow < sv->best_pow)){
+  if(time < sec && (sv->is_first_run ||  pow < sv->best_pow)){
+    sv->is_first_run = false;
     for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
       printf("best wl_idx = %2d\n", sv->workloads[w_idx].wl);
 //
@@ -619,7 +621,7 @@ void finish_scheduling(SharedVariable* sv) {
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = pow;
     sv->is_exec_time_best = sv->is_exec_time;
-  }
+  }// else don't pick anything that exceeds our deadline
     //TODO: find some way to average the runs out in case it picks an outlier
     //i.e. if is_max_freq == is_max_freq_best && is_exec_time_sorted == is_exec_time_sorted_best .. etc.
 //  else if (time < 1000*1000 && pow < sv->best_pow){ //if under threshold, choose by best power
