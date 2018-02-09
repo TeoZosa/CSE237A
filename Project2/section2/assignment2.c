@@ -586,17 +586,19 @@ void finish_scheduling(SharedVariable* sv) {
   } else{
     curr_freq_power = 450;
   }
-  int time = (int)(get_current_time_us() - sv->start_time);
+  long long time = (get_current_time_us() - sv->start_time);
   double pow = (double) ((
-          (double)(time)/(1000 * 1000))
+          (time)/(1000 * 1000))
                          * curr_freq_power);//if max
-  printf("Power: %f mW.\nRun Time: %d\xC2\xB5s.\n", pow, time);
+  printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
   if(sv->is_first_run){
     memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = pow;
   }
+    //TODO: find some way to average the runs out in case it picks an outlier
+    //i.e. if is_max_freq == is_max_freq_best && is_exec_time_sorted == is_exec_time_sorted_best .. etc.
   else if (time < 1000*1000 && pow < sv->best_pow){ //if under threshold, choose by best power
     memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
     sv->is_max_freq_best = sv->is_max_freq;
@@ -605,6 +607,11 @@ void finish_scheduling(SharedVariable* sv) {
 // of this is our last time out of here, set this so the real scheduling
 // (i.e. next iteration) will know which frequency to use.
   sv->is_max_freq =   sv->is_max_freq_best;
+
+  //if averaging, put counter in sv that increments each time we have the same configuration (since it happens ~6
+  // times in a row), zero out before we schedule.
+
+  //TODO: put is_final_run field? to fine grain checks?
 
 
 }
