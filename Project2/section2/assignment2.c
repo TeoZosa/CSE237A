@@ -596,7 +596,10 @@ void finish_scheduling(SharedVariable* sv) {
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
   if(sv->is_first_run || (time < 1000*1000 && pow < sv->best_pow)){
-    memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
+    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
+      sv->workloads_best_ordering[w_idx] = sv->workloads[w_idx];
+    }
+//    memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = pow;
   }
