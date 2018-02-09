@@ -343,7 +343,10 @@ void learn_workloads(SharedVariable* sv) {
   }
   sv->is_max_freq =   sv->is_max_freq_best;
   for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
-    sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
+//    sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
+    sv->workloads[w_idx].wl = sv->workloads_best_ordering[w_idx].wl;
+    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
+    printf("w_idx %d ", sv->workloads[w_idx].wl);
   }
 
   //////////////////////////////////////////////////////////////
