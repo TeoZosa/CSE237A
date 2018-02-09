@@ -31,6 +31,8 @@
 
 const static char* max = "MAX";
 const static char* min = "MIN";
+const static char* exec = "Execution Time";
+const static char* crit = "Critical Time";
 // Functions related to Sample code 3.
 static void report_measurement(int, PerfData*);
 static void* sample3_init(void*);
@@ -66,17 +68,31 @@ static void test_schedule(SharedVariable* v){
   set_ondemand_governor();
   program_exit(v);
 }
+static const char* set_freq_get_string(int isMax) {
 
-static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
- const char* freq;
-  if (isMax){
+  const char *freq;
+  if (isMax) {
     set_by_max_freq();
     freq = max;
-  }
-  else{
+  } else {
     set_by_min_freq();
     freq = min;
   }
+  return freq;
+}
+
+static const char* get_sorting_criteria_string(int is_exec) {
+  const char* sorting_criteria;
+  if (is_exec){
+    sorting_criteria = exec;
+  } else{
+    sorting_criteria = crit;
+  }
+  return sorting_criteria;
+}
+
+static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
+ const char* freq = set_freq_get_string(isMax);
 
   int num_workloads = get_num_workloads();
   int w_idx;
@@ -345,6 +361,13 @@ void learn_workloads(SharedVariable* sv) {
 
   }
 
+printf("\t\t\t--Optimal Schedule--\n");
+  const char *freq = set_freq_get_string(sv->is_max_freq_best);
+  const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
+
+  printf("Sorted by: %s\n", sorting_criteria);
+  printf("Freq:  %s\n", freq);
+  printf("Priority List:\n");
   sv->is_max_freq =   sv->is_max_freq_best;
   for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
     sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
@@ -352,10 +375,9 @@ void learn_workloads(SharedVariable* sv) {
 //
 //    sv->workloads[w_idx].wl = sv->workloads_best_ordering[w_idx].wl;
 //    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
-    printf("new w_idx %d ", sv->workloads[w_idx].wl);
+    printf("\t%d: WL %d\n", w_idx, sv->workloads[w_idx].wl);
   }
-  printf("exec time sorted? %d\n", sv->is_exec_time_best);
-  printf("is max freq? %d\n", sv->is_max_freq_best);
+
 
 
   //////////////////////////////////////////////////////////////
@@ -653,8 +675,6 @@ static void report_measurement(int freq, PerfData* perf_msmts) {
         PerfData* pf = &perf_msmts[core]; 
         if (pf->is_used == 0)
             continue;
-	printf("%d\n", freq);
-	printf("tt = %d", (double)freq/1000);
         TimeType time_estimated = (TimeType)pf->cc/(TimeType)((double)freq/1000);
         printf("[Core %d] Execution Time (us): %lld\n", core, time_estimated);
 
