@@ -179,9 +179,12 @@ static int inline calculate_critical_value(int* crit_val_table, int is_successor
       if (is_successor[workload_index][other_workload]){
         //valid successor
 
+      printf("%2d", workload_index);
+      printf(" -> %2d", other_workload);
         int successor_crit_time = calculate_critical_value(crit_val_table, is_successor, other_workload, sv);
 
         if (successor_crit_time > max_val){
+              printf("New crit max Val: %d\n", successor_crit_time);
           max_val = successor_crit_time;
         }
       }
@@ -237,11 +240,11 @@ static void get_critical_path(SharedVariable* sv) {
     if (!is_starting_tasks[w_idx])
       continue;
 
-//    printf("%2d", w_idx);
+    printf("%2d", w_idx);
     int orig_state = w_idx;
     int successor_state = get_workload(w_idx)->successor_idx;
     while (successor_state != NULL_TASK) {
-//      printf(" -> %2d", successor_state);
+      printf(" -> %2d", successor_state);
       is_successor[orig_state][successor_state] = 1;
       orig_state = successor_state;
       successor_state = get_workload(orig_state)->successor_idx;
