@@ -421,7 +421,7 @@ static inline TaskSelection LJF_scheduler(SharedVariable *sv, const int core,
     for (w_idx = num_workloads-1; w_idx >= 0; --w_idx) {
       // Choose one possible task
       prospective_workload = sv->workloads[w_idx].wl;
-      printf("best wl_idx = %2d\n", prospective_workload);
+//      printf("best wl_idx = %2d\n", prospective_workload);
       if (finished_workloads[prospective_workload] || sv->scheduledWorkloads[prospective_workload]){
         continue;
       }
@@ -600,6 +600,8 @@ void finish_scheduling(SharedVariable* sv) {
 
   if(sv->is_first_run || (time < 1000*1000 && pow < sv->best_pow)){
     for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
+      printf("best wl_idx = %2d\n", sv->workloads[w_idx].wl);
+
       sv->workloads_best_ordering[w_idx].wl = sv->workloads[w_idx].wl;
       sv->workloads_best_ordering[w_idx].time = sv->workloads[w_idx].time;
 
