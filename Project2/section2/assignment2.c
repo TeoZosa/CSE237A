@@ -217,9 +217,9 @@ static void get_critical_path(SharedVariable* sv) {
   }
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     int successor_idx = get_workload(w_idx)->successor_idx;
-    printf("%d -> %d", w_idx, successor_idx);
+    printf("%d -> %d\n", w_idx, successor_idx);
     if (successor_idx == NULL_TASK){
-//      printf("%d is ending task", w_idx);
+      printf("%d is ending task\n", w_idx);
       is_ending_tasks[w_idx] = true;
       continue;
     }
