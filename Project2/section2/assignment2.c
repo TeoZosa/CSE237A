@@ -334,12 +334,12 @@ void learn_workloads(SharedVariable* sv) {
     get_critical_path(sv);
 
     qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
-    test_schedule(*sv);
+    test_schedule(sv);
 
     sv->is_first_run = false;
 
     qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
-    test_schedule(*sv);
+    test_schedule(sv);
 
   }
 
