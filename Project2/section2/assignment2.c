@@ -79,7 +79,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
 
   int num_workloads = get_num_workloads();
   int w_idx;
-  int num_iterations = 1;
+  int num_iterations = 10;
   printf("at %s freq.\n", freq);
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
@@ -176,19 +176,13 @@ workload_index,
     // so the inner if statement only executes once
     int max_val = 0;
     for (int other_workload = 0; other_workload < NUM_WORKLOADS; ++other_workload) {
-//      printf("%2d", workload_index);
-//      printf(" -> %2d", other_workload);
-//      printf(":  %d", is_successor[workload_index][other_workload]);
 
       if (is_successor[workload_index][other_workload] ){
         //valid successor
 
-      printf("%2d", workload_index);
-      printf(" -> %2d", other_workload);
         int successor_crit_time = calculate_critical_value(crit_val_table, is_successor, other_workload, sv);
 
         if (successor_crit_time > max_val){
-              printf("New crit max Val: %d\n", successor_crit_time);
           max_val = successor_crit_time;
         }
       }
@@ -200,7 +194,7 @@ workload_index,
   return crit_val_table[workload_index];
 }
 
-static void get_critical_path(SharedVariable* sv) {
+static inline void get_critical_path(SharedVariable* sv) {
   int num_workloads = get_num_workloads();
   int w_idx;
   bool* is_starting_tasks = (bool*)malloc(num_workloads * sizeof(bool));
@@ -218,9 +212,7 @@ static void get_critical_path(SharedVariable* sv) {
   }
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     int successor_idx = get_workload(w_idx)->successor_idx;
-//    printf("%d -> %d\n", w_idx, successor_idx);
     if (successor_idx == NULL_TASK){
-//      printf("%d is ending task\n", w_idx);
       is_ending_tasks[w_idx] = true;
       continue;
     }
@@ -231,64 +223,53 @@ static void get_critical_path(SharedVariable* sv) {
   //set the c_path_table values for states without is_successor.
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     if(is_ending_tasks[w_idx]) {
-      printf("%d is in ending_tasks with val", w_idx);
       c_path_DP_table[w_idx] = sv->workloads[w_idx].time;
     }
   }
 
-  // 2. Print the path for each starting task
+  // 2. set successor adjacency list
   bool is_successor[NUM_WORKLOADS][NUM_WORKLOADS];
-
-
   memset(is_successor, 0, sizeof(is_successor[0][0]) * NUM_WORKLOADS * NUM_WORKLOADS);
 
-//find is_successor
+//set successors
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     if (!is_starting_tasks[w_idx])
       continue;
 
-//    printf("%2d", w_idx);
     int orig_state = w_idx;
     int successor_state = get_workload(w_idx)->successor_idx;
     while (successor_state != NULL_TASK) {
-//      printf(" -> %2d", successor_state);
       is_successor[orig_state][successor_state] = true;
       orig_state = successor_state;
       successor_state = get_workload(orig_state)->successor_idx;
     }
-    printf("\n");
   }
-  //calculate critical values via DP
-//  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-//    for (int w_idx1 = 0; w_idx1 < num_workloads; ++w_idx1) {
-//  printf("%d -> %d: %d\n", w_idx, w_idx1, is_successor[w_idx][w_idx1]);
-//    }
-//  }
+
 
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     int crit_time = calculate_critical_value(c_path_DP_table, is_successor, w_idx, sv);
 
     //since each state only has one successor; accumulate time from start to finish
-    int crit_time_alt = sv->workloads[w_idx].time;
-    int successor_idx = get_workload(w_idx)->successor_idx;
-//    printf("%2d", w_idx);
-
-    while (successor_idx != NULL_TASK) {
-
-      crit_time_alt += sv->workloads[successor_idx].time;
-//      printf("( -> %2d", successor_idx);
-
-      successor_idx = get_workload(successor_idx)->successor_idx;
-    }
-
-    printf("DP: %d\n Sum: %d\n\n", crit_time, crit_time_alt);
-    assert(crit_time == crit_time_alt);
+//    int crit_time_alt = sv->workloads[w_idx].time;
+//    int successor_idx = get_workload(w_idx)->successor_idx;
+////    printf("%2d", w_idx);
+//
+//    while (successor_idx != NULL_TASK) {
+//
+//      crit_time_alt += sv->workloads[successor_idx].time;
+////      printf("( -> %2d", successor_idx);
+//
+//      successor_idx = get_workload(successor_idx)->successor_idx;
+//    }
+//
+//    printf("DP: %d\n Sum: %d\n\n", crit_time, crit_time_alt);
+//    assert(crit_time == crit_time_alt);
 
     //replace time with this after asserts look good;
     // saves space since we don't need process-specific
     // speed?
-    sv->workloads->crit_time = c_path_DP_table[w_idx];
+    sv->workloads->crit_time = crit_time;
   }
 
 
@@ -350,9 +331,11 @@ void learn_workloads(SharedVariable* sv) {
     //////////////////////////////////////////////////////////////
   print_task_path();
   get_critical_path(sv);
+  
   //do via exec
   qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
   test_schedule(*sv);
+
   qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
   test_schedule(*sv);
 
@@ -419,7 +402,7 @@ static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
   int prospective_workload;
 
 
-  if (core == 1){
+  if (true){//core == 0
     //get a long job
     for (w_idx = num_workloads-1; w_idx >= 0; --w_idx) {
       // Choose one possible task
