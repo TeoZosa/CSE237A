@@ -342,7 +342,7 @@ void learn_workloads(SharedVariable* sv) {
 
   }
   sv->is_max_freq =   sv->is_max_freq_best;
-  sv->workloads = sv->workloads_best_ordering;
+  sv->workloads = &(sv->workloads_best_ordering);
 
 
   //////////////////////////////////////////////////////////////
