@@ -342,8 +342,9 @@ void learn_workloads(SharedVariable* sv) {
 
   }
   sv->is_max_freq =   sv->is_max_freq_best;
-  memcpy(sv->workloads, sv->workloads_best_ordering, sizeof(sv->workloads_best_ordering));
-
+  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+    sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
+  }
 
   //////////////////////////////////////////////////////////////
     
@@ -593,17 +594,18 @@ void finish_scheduling(SharedVariable* sv) {
                          * curr_freq_power);//if max
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
-  if(sv->is_first_run){
-    memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
+  if(sv->is_first_run || (time < 1000*1000 && pow < sv->best_pow)){
+    memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads_best_ordering));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = pow;
   }
     //TODO: find some way to average the runs out in case it picks an outlier
     //i.e. if is_max_freq == is_max_freq_best && is_exec_time_sorted == is_exec_time_sorted_best .. etc.
-  else if (time < 1000*1000 && pow < sv->best_pow){ //if under threshold, choose by best power
-    memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
-    sv->is_max_freq_best = sv->is_max_freq;
-  }
+//  else if (time < 1000*1000 && pow < sv->best_pow){ //if under threshold, choose by best power
+//    memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
+//    sv->is_max_freq_best = sv->is_max_freq;
+//
+//  }
 
 // of this is our last time out of here, set this so the real scheduling
 // (i.e. next iteration) will know which frequency to use.
