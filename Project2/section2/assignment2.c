@@ -176,18 +176,13 @@ workload_index,
     // so the inner if statement only executes once
     int max_val = 0;
     for (int other_workload = 0; other_workload < NUM_WORKLOADS; ++other_workload) {
-
       if (is_successor[workload_index][other_workload] ){
         //valid successor
-
         int successor_crit_time = calculate_critical_value(crit_val_table, is_successor, other_workload, sv);
-
         if (successor_crit_time > max_val){
           max_val = successor_crit_time;
         }
       }
-
-
     }
     crit_val_table[workload_index] = sv->workloads[workload_index].time + max_val;
   }
@@ -301,7 +296,7 @@ static void profile_real_workloads(){
 // (See main_section2.c)
 
 void learn_workloads(SharedVariable* sv) {
-
+  sv->is_first_run = true;
 	// TODO: Fill the body
 
 	// This function is executed before the scheduling simulation.
@@ -316,28 +311,37 @@ void learn_workloads(SharedVariable* sv) {
     // Tip 2. You can also use your kernel module to read PMU events,
     // and provided workload profiling code in the same way to the part 1.
 
+
+
+  //do via exec
+
+  for (int is_max_freq = 0; is_max_freq <= 1; ++is_max_freq){
+    sv->is_max_freq = (bool)is_max_freq;
     //////////////////////////////////////////////////////////////
     // Sample code 1: Running all tasks on the current running core
     // This executes all tasks one-by-one at the maximum frequency
     //////////////////////////////////////////////////////////////
 
-//  run_workloads_sequential(0);//MIN
-  run_workloads_sequential(1, sv);//MAX
+    run_workloads_sequential(is_max_freq, sv);
     //////////////////////////////////////////////////////////////
-    
+
     //////////////////////////////////////////////////////////////
     // Sample code 2: Print a task path for each starting task
     // This prints the task path from each statring task to the end
     //////////////////////////////////////////////////////////////
-  print_task_path();
-  get_critical_path(sv);
-  
-  //do via exec
-  qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
-  test_schedule(*sv);
+    print_task_path();
+    get_critical_path(sv);
 
-  qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
-  test_schedule(*sv);
+    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
+    test_schedule(*sv);
+
+    sv->is_first_run = false;
+
+    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
+    test_schedule(*sv);
+
+  }
+
 
   //////////////////////////////////////////////////////////////
     
@@ -381,7 +385,7 @@ static inline TaskSelection naive_scheduler(SharedVariable* sv, const int core,
   return task_selection;
 }
 
-static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
+static inline TaskSelection LJF_scheduler(SharedVariable *sv, const int core,
                                           const int num_workloads,
                                           const bool *schedulable_workloads, const bool *finished_workloads){
   //////////////////////////////////////////////////////////////
@@ -392,8 +396,12 @@ static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
   //////////////////////////////////////////////////////////////
   TaskSelection task_selection;
 
-  // Choose the minimum frequency
-  task_selection.freq = FREQ_CTL_MAX; // You can change this to FREQ_CTL_MAX
+  // Choose frequency
+  if (sv->is_max_freq){
+    task_selection.freq = FREQ_CTL_MAX; // You can change this to FREQ_CTL_MAX
+  } else{
+    task_selection.freq = FREQ_CTL_MIN;
+  }
 
 
   //set freq dynamically if next shortest job is 2x the time of this job? assumes CPU bound
@@ -458,7 +466,7 @@ TaskSelection select_workload(
 
 
 
-    return SJF_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
+    return LJF_scheduler(sv, core, num_workloads, schedulable_workloads, finished_workloads);
     //////////////////////////////////////////////////////////////
 }
 
@@ -572,11 +580,32 @@ void start_scheduling(SharedVariable* sv) {
 // (This is called in main_section2.c)
 void finish_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
+  int curr_freq_power;
+  if (sv->is_max_freq){
+    curr_freq_power = 1050;
+  } else{
+    curr_freq_power = 450;
+  }
   int time = (int)(get_current_time_us() - sv->start_time);
   double pow = (double) ((
           (double)(time)/(1000 * 1000))
-                         * (1050));//if max
+                         * curr_freq_power);//if max
   printf("Power: %f mW.\nRun Time: %d\xC2\xB5s.\n", pow, time);
+
+  if(sv->is_first_run){
+    memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
+    sv->is_max_freq_best = sv->is_max_freq;
+    sv->best_pow = pow;
+  }
+  else if (time < 1000*1000 && pow < sv->best_pow){ //if under threshold, choose by best power
+    memcpy(sv->workloads_best_ordering, sv->workloads, sizeof(sv->workloads_best_ordering));
+    sv->is_max_freq_best = sv->is_max_freq;
+  }
+
+// of this is our last time out of here, set this so the real scheduling
+// (i.e. next iteration) will know which frequency to use.
+  sv->is_max_freq =   sv->is_max_freq_best;
+
 
 }
 
