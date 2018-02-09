@@ -172,7 +172,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
   int num_workloads = get_num_workloads();
   int w_idx;
   int num_iterations = 10;
-  printf("at %s freq.\n", freq);
+  printf("\tAt Freq = %s\n", freq);
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     const WorkloadItem *workload_item = get_workload(w_idx);
@@ -207,8 +207,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
     }
   }
 
-
-
+  printf("\n");
   }
 
 //////////////////////////////////////////////////////////////
@@ -255,7 +254,7 @@ workload_index,
   if (crit_val_table[workload_index] == -1){ //calculate the critval
 
     //find max crit val of all is_successor
-    //NOTE: for this program, the dependency graph is many-to-one, i.e., each state only has one successor;
+    //NOTE: for this assignment, the dependency graph is many-to-one, i.e., each state only has one successor;
     // so the inner if statement only executes once
     int max_val = 0;
     for (int other_workload = 0; other_workload < NUM_WORKLOADS; ++other_workload) {
@@ -271,6 +270,20 @@ workload_index,
   } //else critval already in table
 
   return crit_val_table[workload_index];
+}
+
+static inline void crit_time_assert(SharedVariable* sv, int calculated_crit_time, int workload_num){
+
+  //since each state only has one successor; accumulate time from start to finish
+    int crit_time_alt = sv->workloads[workload_num].time;
+    int successor_idx = get_workload(workload_num)->successor_idx;
+    while (successor_idx != NULL_TASK) {
+      crit_time_alt += sv->workloads[successor_idx].time;
+      successor_idx = get_workload(successor_idx)->successor_idx;
+    }
+    printf("DP: %d\n Sum: %d\n\n", calculated_crit_time, crit_time_alt);
+    assert(calculated_crit_time == crit_time_alt);
+
 }
 
 
@@ -329,23 +342,7 @@ static inline void get_critical_path(SharedVariable* sv) {
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     int crit_time = calculate_critical_value(c_path_DP_table, is_successor, w_idx, sv);
-
-    //since each state only has one successor; accumulate time from start to finish
-//    int crit_time_alt = sv->workloads[w_idx].time;
-//    int successor_idx = get_workload(w_idx)->successor_idx;
-////    printf("%2d", w_idx);
-//
-//    while (successor_idx != NULL_TASK) {
-//
-//      crit_time_alt += sv->workloads[successor_idx].time;
-////      printf("( -> %2d", successor_idx);
-//
-//      successor_idx = get_workload(successor_idx)->successor_idx;
-//    }
-//
-//    printf("DP: %d\n Sum: %d\n\n", crit_time, crit_time_alt);
-//    assert(crit_time == crit_time_alt);
-
+//     crit_time_assert(sv, crit_time, w_idx);
     sv->workloads[w_idx].crit_time = crit_time;
   }
 
