@@ -217,7 +217,9 @@ static void get_critical_path(SharedVariable* sv) {
   }
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     int successor_idx = get_workload(w_idx)->successor_idx;
+    printf("%d -> %d", w_idx, successor_idx);
     if (successor_idx == NULL_TASK){
+//      printf("%d is ending task", w_idx);
       is_ending_tasks[w_idx] = true;
       continue;
     }
@@ -228,7 +230,7 @@ static void get_critical_path(SharedVariable* sv) {
   //set the c_path_table values for states without is_successor.
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     if(is_ending_tasks[w_idx]) {
-      printf("%d is ending task", w_idx);
+//      printf("%d is ending task", w_idx);
       c_path_DP_table[w_idx] = sv->workloads[w_idx].time;
     }
   }
