@@ -587,7 +587,7 @@ void finish_scheduling(SharedVariable* sv) {
     curr_freq_power = 450;
   }
   long long time = (get_current_time_us() - sv->start_time);
-  double pow =  (((double)(time)/(1000 * 1000))
+  double pow =  (((double)(time)/(double)(1000 * 1000))
                          * curr_freq_power);//if max
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
