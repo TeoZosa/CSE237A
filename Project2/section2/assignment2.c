@@ -43,6 +43,46 @@ static void* workloads_init(void*);
 static void* workloads_body(void*);
 static void* workloads_exit(void*);
 
+
+static double cumulative_moving_avg(double avg, double new_datum, unsigned short int num_data){
+  //num data points NOT including curr data point
+  return (new_datum + (num_data) * avg)/num_data+1;
+}
+
+static void update_SV_avg(SharedVariable* sv, double new_datum) {
+  unsigned short int num_data = sv->times_run_curr_schedule;
+  double avg = sv->avg_pow_curr_schedule; //note: if this is garbage, should be multiplied by 0 anyway
+  sv->avg_pow_curr_schedule = cumulative_moving_avg(avg, new_datum, num_data);
+//  if (num_data > 0){
+//    double avg = sv->avg_pow_curr_schedule;
+//    sv->avg_pow_curr_schedule = cumulative_moving_avg(avg, new_datum, num_data);
+//  } else{
+//    sv->avg_pow_curr_schedule = new_datum;
+//  }
+
+  ++sv->times_run_curr_schedule;//includes curr_data point
+}
+
+static void init_for_scheduling(SharedVariable* sv){
+  sv->schedule_feasible = true;
+  sv->times_run_curr_schedule = 0;
+  sv->avg_pow_curr_schedule = 0;
+}
+
+
+static void check_if_tested_schedule_is_better(SharedVariable* sv){
+  const bool under_time_threshold = sv->schedule_feasible;
+  const double curr_schedule_power = sv->avg_pow_curr_schedule;
+
+  if (under_time_threshold && (sv->no_best_schedule_yet || curr_schedule_power < sv->best_pow) ){
+    sv->no_best_schedule_yet = false; //redundant if I set best pow's initial value very high?
+    memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
+    sv->is_max_freq_best = sv->is_max_freq;
+    sv->best_pow = curr_schedule_power;
+    sv->is_exec_time_best = sv->is_exec_time;
+  }
+}
+
 static void test_schedule(SharedVariable* v){
   int running_time_in_sec = 10;
 
@@ -90,6 +130,44 @@ static const char* get_sorting_criteria_string(int is_exec) {
   }
   return sorting_criteria;
 }
+
+static void run_test_schedule_single(int sort_by_exec_time, SharedVariable* sv) {
+  init_for_scheduling(sv);
+  sv->is_exec_time = (bool)sort_by_exec_time;
+  if (sort_by_exec_time){
+    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
+  } else{
+    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
+  }
+  test_schedule(sv);
+  check_if_tested_schedule_is_better(sv);
+}
+
+static void run_test_schedule_all(SharedVariable* sv) {
+  for (int sort_by_exec_time = 0; sort_by_exec_time <= 1; ++sort_by_exec_time){
+    run_test_schedule_single(sort_by_exec_time, sv);
+  }
+}
+
+static inline void set_best_schedule_and_print(SharedVariable* sv) {
+  printf("\t\t\t--Optimal Schedule--\n");
+  const char *freq = set_freq_get_string(sv->is_max_freq_best);
+  const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
+
+  printf("Sorted by: %s\n", sorting_criteria);
+  printf("Freq:  %s\n", freq);
+  printf("Priority List:\n\n");
+  sv->is_max_freq =   sv->is_max_freq_best;
+  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+    sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
+//    printf("old w_idx %d ", sv->workloads[w_idx].wl);
+//
+//    sv->workloads[w_idx].wl = sv->workloads_best_ordering[w_idx].wl;
+//    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
+    printf("%d: \tWL %d\n", w_idx, sv->workloads[w_idx].wl);
+  }
+}
+
 
 static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
  const char* freq = set_freq_get_string(isMax);
@@ -313,7 +391,7 @@ static void profile_real_workloads(){
 // (See main_section2.c)
 
 void learn_workloads(SharedVariable* sv) {
-  sv->is_first_run = true;
+  sv->no_best_schedule_yet = true;
 	// TODO: Fill the body
 
 	// This function is executed before the scheduling simulation.
@@ -331,6 +409,7 @@ void learn_workloads(SharedVariable* sv) {
 
 
   //do via exec
+  print_task_path();
 
   for (int is_max_freq = 0; is_max_freq <= 1; ++is_max_freq){
     sv->is_max_freq = (bool)is_max_freq;
@@ -339,44 +418,45 @@ void learn_workloads(SharedVariable* sv) {
     // This executes all tasks one-by-one at the maximum frequency
     //////////////////////////////////////////////////////////////
 
-    run_workloads_sequential(is_max_freq, sv);
+    run_workloads_sequential(is_max_freq, sv);//updates workload execution times in sv.
+    get_critical_path(sv);//critical path relies on executions times, which relies on run_workloads
+
     //////////////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////////////
     // Sample code 2: Print a task path for each starting task
     // This prints the task path from each statring task to the end
     //////////////////////////////////////////////////////////////
-    print_task_path();
-    get_critical_path(sv);
 
-    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
-    sv->is_exec_time = 1;
-    test_schedule(sv);
+    run_test_schedule_all(sv);
 
-    sv->is_first_run = false;
-
-    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
-    sv->is_exec_time = 0;
-    test_schedule(sv);
-
-  }
-
-printf("\t\t\t--Optimal Schedule--\n");
-  const char *freq = set_freq_get_string(sv->is_max_freq_best);
-  const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
-
-  printf("Sorted by: %s\n", sorting_criteria);
-  printf("Freq:  %s\n", freq);
-  printf("Priority List:\n");
-  sv->is_max_freq =   sv->is_max_freq_best;
-  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
-    sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
-//    printf("old w_idx %d ", sv->workloads[w_idx].wl);
+//    sv->is_exec_time = 1;
+//    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
+//    test_schedule(sv);
 //
-//    sv->workloads[w_idx].wl = sv->workloads_best_ordering[w_idx].wl;
-//    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
-    printf("\t%d: WL %d\n", w_idx, sv->workloads[w_idx].wl);
+//
+//    qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
+//    sv->is_exec_time = 0;
+//    test_schedule(sv);
+
   }
+set_best_schedule_and_print(sv);
+//printf("\t\t\t--Optimal Schedule--\n");
+//  const char *freq = set_freq_get_string(sv->is_max_freq_best);
+//  const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
+//
+//  printf("Sorted by: %s\n", sorting_criteria);
+//  printf("Freq:  %s\n", freq);
+//  printf("Priority List:\n");
+//  sv->is_max_freq =   sv->is_max_freq_best;
+//  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+//    sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
+////    printf("old w_idx %d ", sv->workloads[w_idx].wl);
+////
+////    sv->workloads[w_idx].wl = sv->workloads_best_ordering[w_idx].wl;
+////    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
+//    printf("\t%d: WL %d\n", w_idx, sv->workloads[w_idx].wl);
+//  }
 
 
 
@@ -421,6 +501,8 @@ static inline TaskSelection naive_scheduler(SharedVariable* sv, const int core,
   }
   return task_selection;
 }
+
+
 
 static inline TaskSelection LJF_scheduler(SharedVariable *sv, const int core,
                                           const int num_workloads,
@@ -628,22 +710,29 @@ void finish_scheduling(SharedVariable* sv) {
   int sec = 1000 * 1000;
   double pow =  (((double)(time)/(double)(sec))
                          * curr_freq_power);//if max
-  printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
+  printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n\n", pow, time);
 
-  if(time < sec && (sv->is_first_run ||  pow < sv->best_pow)){
-    sv->is_first_run = false;
-    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
-      printf("best wl_idx = %2d\n", sv->workloads[w_idx].wl);
+  if (time >= sec){
+    sv->schedule_feasible = false;
+  }
+  update_SV_avg(sv, pow);
+
+
 //
-//      sv->workloads_best_ordering[w_idx].wl = sv->workloads[w_idx].wl;
-//      sv->workloads_best_ordering[w_idx].time = sv->workloads[w_idx].time;
-//
-    }
-    memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
-    sv->is_max_freq_best = sv->is_max_freq;
-    sv->best_pow = pow;
-    sv->is_exec_time_best = sv->is_exec_time;
-  }// else don't pick anything that exceeds our deadline
+//  if(time < sec && (sv->no_best_schedule_yet ||  pow < sv->best_pow)){
+//    sv->no_best_schedule_yet = false;
+////    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
+////      printf("best wl_idx = %2d\n", sv->workloads[w_idx].wl);
+//////
+//////      sv->workloads_best_ordering[w_idx].wl = sv->workloads[w_idx].wl;
+//////      sv->workloads_best_ordering[w_idx].time = sv->workloads[w_idx].time;
+//////
+////    }
+//    memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
+//    sv->is_max_freq_best = sv->is_max_freq;
+//    sv->best_pow = pow;
+//    sv->is_exec_time_best = sv->is_exec_time;
+//  }// else don't pick anything that exceeds our deadline
     //TODO: find some way to average the runs out in case it picks an outlier
     //i.e. if is_max_freq == is_max_freq_best && is_exec_time_sorted == is_exec_time_sorted_best .. etc.
 //  else if (time < 1000*1000 && pow < sv->best_pow){ //if under threshold, choose by best power
