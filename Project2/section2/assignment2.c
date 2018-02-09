@@ -188,7 +188,7 @@ static int inline calculate_critical_value(int* crit_val_table, int is_successor
 
 
     }
-    crit_val_table[workload_index] = sv->workloads->time + max_val;
+    crit_val_table[workload_index] = sv->workloads[workload_index].time + max_val;
   }
   return crit_val_table[workload_index];
 }
@@ -238,14 +238,13 @@ static void get_critical_path(SharedVariable* sv) {
       continue;
 
 //    printf("%2d", w_idx);
-    int successor_idx = get_workload(w_idx)->successor_idx;
-    while (successor_idx != NULL_TASK) {
-//      printf(" -> %2d", successor_idx);
-      int next_state = get_workload(successor_idx)->successor_idx;
-      if (next_state != NULL_TASK){
-        is_successor[successor_idx][next_state] = 1; // successor_idx => next_state
-      }
-      successor_idx = next_state;
+    int orig_state = w_idx;
+    int successor_state = get_workload(w_idx)->successor_idx;
+    while (successor_state != NULL_TASK) {
+//      printf(" -> %2d", successor_state);
+      is_successor[orig_state][successor_state] = 1;
+      orig_state = successor_state;
+      successor_state = get_workload(orig_state)->successor_idx;
     }
     printf("\n");
   }
@@ -266,7 +265,7 @@ static void get_critical_path(SharedVariable* sv) {
 
       successor_idx = get_workload(successor_idx)->successor_idx;
     }
-    
+
     printf("DP: %d\n Sum: %d\n\n", crit_time, crit_time_alt);
     assert(crit_time == crit_time_alt);
 
