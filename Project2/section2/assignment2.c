@@ -79,7 +79,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
 
   int num_workloads = get_num_workloads();
   int w_idx;
-  int num_iterations = 10;
+  int num_iterations = 1;
   printf("at %s freq.\n", freq);
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
@@ -166,7 +166,8 @@ static void print_task_path() {
 }
 
 //hope int is big enough to receive value
-static int inline calculate_critical_value(int* crit_val_table, int is_successor[NUM_WORKLOADS][NUM_WORKLOADS], int workload_index,
+static int inline calculate_critical_value(int* crit_val_table, bool is_successor[NUM_WORKLOADS][NUM_WORKLOADS], int
+workload_index,
                                            SharedVariable * sv ){
   if (crit_val_table[workload_index] == -1){ //calculate the critval
 
@@ -175,9 +176,9 @@ static int inline calculate_critical_value(int* crit_val_table, int is_successor
     // so the inner if statement only executes once
     int max_val = 0;
     for (int other_workload = 0; other_workload < NUM_WORKLOADS; ++other_workload) {
-      printf("%2d", workload_index);
-      printf(" -> %2d", other_workload);
-      printf(":  %d", is_successor[workload_index][other_workload]);
+//      printf("%2d", workload_index);
+//      printf(" -> %2d", other_workload);
+//      printf(":  %d", is_successor[workload_index][other_workload]);
 
       if (is_successor[workload_index][other_workload]){
         //valid successor
@@ -217,9 +218,9 @@ static void get_critical_path(SharedVariable* sv) {
   }
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     int successor_idx = get_workload(w_idx)->successor_idx;
-    printf("%d -> %d\n", w_idx, successor_idx);
+//    printf("%d -> %d\n", w_idx, successor_idx);
     if (successor_idx == NULL_TASK){
-      printf("%d is ending task\n", w_idx);
+//      printf("%d is ending task\n", w_idx);
       is_ending_tasks[w_idx] = true;
       continue;
     }
@@ -236,7 +237,7 @@ static void get_critical_path(SharedVariable* sv) {
   }
 
   // 2. Print the path for each starting task
-  int is_successor[NUM_WORKLOADS][NUM_WORKLOADS];
+  bool is_successor[NUM_WORKLOADS][NUM_WORKLOADS];
 
 
 //  memset(is_successor, -1, sizeof(is_successor[0][0]) * NUM_WORKLOADS * NUM_WORKLOADS);
@@ -246,12 +247,12 @@ static void get_critical_path(SharedVariable* sv) {
     if (!is_starting_tasks[w_idx])
       continue;
 
-    printf("%2d", w_idx);
+//    printf("%2d", w_idx);
     int orig_state = w_idx;
     int successor_state = get_workload(w_idx)->successor_idx;
     while (successor_state != NULL_TASK) {
-      printf(" -> %2d", successor_state);
-      is_successor[orig_state][successor_state] = 1;
+//      printf(" -> %2d", successor_state);
+      is_successor[orig_state][successor_state] = true;
       orig_state = successor_state;
       successor_state = get_workload(orig_state)->successor_idx;
     }
