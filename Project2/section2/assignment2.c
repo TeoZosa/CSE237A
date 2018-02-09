@@ -185,7 +185,7 @@ workload_index,
 
       printf("%2d", workload_index);
       printf(" -> %2d", other_workload);
-        int successor_crit_time = 1;// calculate_critical_value(crit_val_table, is_successor, other_workload, sv);
+        int successor_crit_time = calculate_critical_value(crit_val_table, is_successor, other_workload, sv);
 
         if (successor_crit_time > max_val){
               printf("New crit max Val: %d\n", successor_crit_time);
@@ -240,7 +240,7 @@ static void get_critical_path(SharedVariable* sv) {
   bool is_successor[NUM_WORKLOADS][NUM_WORKLOADS];
 
 
-//  memset(is_successor, -1, sizeof(is_successor[0][0]) * NUM_WORKLOADS * NUM_WORKLOADS);
+  memset(is_successor, 0, sizeof(is_successor[0][0]) * NUM_WORKLOADS * NUM_WORKLOADS);
 
 //find is_successor
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
@@ -259,11 +259,11 @@ static void get_critical_path(SharedVariable* sv) {
     printf("\n");
   }
   //calculate critical values via DP
-  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
-    for (int w_idx1 = 0; w_idx1 < num_workloads; ++w_idx1) {
-  printf("%d -> %d: %d", w_idx, w_idx1, is_successor[w_idx][w_idx1]);
-    }
-  }
+//  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+//    for (int w_idx1 = 0; w_idx1 < num_workloads; ++w_idx1) {
+//  printf("%d -> %d: %d\n", w_idx, w_idx1, is_successor[w_idx][w_idx1]);
+//    }
+//  }
 
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
