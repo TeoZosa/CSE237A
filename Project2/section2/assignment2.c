@@ -223,14 +223,14 @@ static void get_critical_path(SharedVariable* sv) {
       is_ending_tasks[w_idx] = true;
       continue;
     }
-
+    is_ending_tasks[w_idx] = false;
     is_starting_tasks[successor_idx] = false;
   }
 
   //set the c_path_table values for states without is_successor.
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     if(is_ending_tasks[w_idx]) {
-//      printf("%d is ending task", w_idx);
+      printf("%d is in ending_tasks with val", w_idx);
       c_path_DP_table[w_idx] = sv->workloads[w_idx].time;
     }
   }
