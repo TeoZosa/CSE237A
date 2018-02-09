@@ -587,8 +587,7 @@ void finish_scheduling(SharedVariable* sv) {
     curr_freq_power = 450;
   }
   long long time = (get_current_time_us() - sv->start_time);
-  double pow = (double) ((
-          (time)/(1000 * 1000))
+  double pow =  (((double)(time)/(1000 * 1000))
                          * curr_freq_power);//if max
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
@@ -628,7 +627,7 @@ static void report_measurement(int freq, PerfData* perf_msmts) {
         if (pf->is_used == 0)
             continue;
 
-        TimeType time_estimated = (TimeType)pf->cc/(TimeType)(freq/1000);
+        TimeType time_estimated = (TimeType)pf->cc/(TimeType)((double)freq/1000);
         printf("[Core %d] Execution Time (us): %lld\n", core, time_estimated);
 
         printf("[Core %d] Cycle Count: %u\n", core, pf->cc);
