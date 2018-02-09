@@ -10,13 +10,17 @@
 typedef struct
 {    int wl;
 		int time;
+    int crit_time;
 } WLxTime;
 
-static int compare(const void *workload1, const void *workload2)
+static int compare_exec_time(const void *workload1, const void *workload2)
 {
 	return  ((WLxTime *)workload1)->time - ((WLxTime *)workload2)->time;
 }
-
+static int compare_crit_time(const void *workload1, const void *workload2)
+{
+  return  ((WLxTime *)workload1)->crit_time - ((WLxTime *)workload2)->crit_time;
+}
 
 // **** Shared structure *****
 // All thread fuctions get a shared variable of the structure

@@ -37,6 +37,34 @@ static void* sample3_init(void*);
 static void* sample3_body(void*);
 static void* sample3_exit(void*);
 
+static void* workloads_init(void*);
+static void* workloads_body(void*);
+static void* workloads_exit(void*);
+
+static void test_schedule(SharedVariable v){
+  int running_time_in_sec = 10;
+  program_init(&v);
+  // Initialize the sheduler
+  init_scheduler(&v);
+  unregister_workload_all(); // Unregister all workload in profiling (if any)
+  set_userspace_governor(); // Change the governor (in case if needed)
+
+  // Do scheduling
+  printf("Start scheduling.\n");
+  TimeType start_sched_time = get_current_time_us();
+  while ((v.bProgramExit != 1) &&
+         ((get_current_time_us() - start_sched_time) <
+          running_time_in_sec * 1000 * 1000)) {
+    start_scheduling(&v);
+    schedule();
+    finish_scheduling(&v);
+  }
+
+  // exit scheduling
+  exit_scheduler();
+  set_ondemand_governor();
+  program_exit(&v);
+}
 
 static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
  const char* freq;
@@ -137,8 +165,125 @@ static void print_task_path() {
   free(is_starting_tasks);
 }
 
-static void profile_workloads(){
+//hope int is big enough to receive value
+static int inline calculate_critical_value(int* crit_val_table, int is_successor[NUM_WORKLOADS][NUM_WORKLOADS], int workload_index,
+                                           SharedVariable * sv ){
+  if (crit_val_table[workload_index] == -1){ //calculate the critval
+
+    //find max crit val of all is_successor
+    //NOTE: for this program, the dependency graph is many-to-one, i.e., each state only has one successor;
+    // so the inner if statement only executes once
+    int max_val = 0;
+    for (int other_workload = 0; other_workload < NUM_WORKLOADS; ++other_workload) {
+
+      if (is_successor[workload_index][other_workload]){
+        //valid successor
+
+        int successor_crit_time = calculate_critical_value(crit_val_table, is_successor, other_workload, sv);
+
+        if (successor_crit_time > max_val){
+          max_val = successor_crit_time;
+        }
+      }
+
+
+    }
+    crit_val_table[workload_index] = sv->workloads->time + max_val;
+  }
+  return crit_val_table[workload_index];
+}
+
+static void get_critical_path(SharedVariable* sv) {
+  int num_workloads = get_num_workloads();
+  int w_idx;
+  bool* is_starting_tasks = (bool*)malloc(num_workloads * sizeof(bool));
+  bool* is_ending_tasks = (bool*)malloc(num_workloads * sizeof(bool));
+
+//init table
+  int c_path_DP_table[NUM_WORKLOADS];
+  memset(c_path_DP_table, -1, sizeof(c_path_DP_table));
+
+
+
+  // 1. Find all starting tasks
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    is_starting_tasks[w_idx] = true;
+  }
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    int successor_idx = get_workload(w_idx)->successor_idx;
+    if (successor_idx == NULL_TASK){
+      is_ending_tasks[w_idx] = true;
+      continue;
+    }
+
+    is_starting_tasks[successor_idx] = false;
+  }
+
+  //set the c_path_table values for states without is_successor.
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    if(is_ending_tasks[w_idx]) {
+      c_path_DP_table[w_idx] = sv->workloads[w_idx].time;
+    }
+  }
+
+  // 2. Print the path for each starting task
+  int is_successor[NUM_WORKLOADS][NUM_WORKLOADS];
+
+
+//  memset(is_successor, -1, sizeof(is_successor[0][0]) * NUM_WORKLOADS * NUM_WORKLOADS);
+
+//find is_successor
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    if (!is_starting_tasks[w_idx])
+      continue;
+
+//    printf("%2d", w_idx);
+    int successor_idx = get_workload(w_idx)->successor_idx;
+    while (successor_idx != NULL_TASK) {
+//      printf(" -> %2d", successor_idx);
+      int next_state = get_workload(successor_idx)->successor_idx;
+      if (next_state != NULL_TASK){
+        is_successor[successor_idx][next_state] = 1; // successor_idx => next_state
+      }
+      successor_idx = next_state;
+    }
+    printf("\n");
+  }
+  //calculate critical values via DP
+
+  for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
+    int crit_time = calculate_critical_value(c_path_DP_table, is_successor, w_idx, sv);
+
+    //since each state only has one successor; accumulate time from start to finish
+    int crit_time_alt = sv->workloads[w_idx].time;
+    int successor_idx = get_workload(w_idx)->successor_idx;
+    while (successor_idx != NULL_TASK) {
+      crit_time_alt += sv->workloads[successor_idx].time;
+      successor_idx = get_workload(successor_idx)->successor_idx;
+    }
+    assert(crit_time == crit_time_alt);
+
+    //replace time with this after asserts look good;
+    // saves space since we don't need process-specific
+    // speed?
+    sv->workloads->crit_time = c_path_DP_table[w_idx];
+  }
+
+
+  free(is_starting_tasks);
+  free(is_ending_tasks);
+}
+
+static void profile_sample_workloads(){
   register_workload(0, sample3_init, sample3_body, sample3_exit);
+  PerfData perf_msmts[MAX_CPU_IN_RPI3];
+  run_workloads(perf_msmts);
+  report_measurement(get_cur_freq(), perf_msmts);
+  unregister_workload_all();
+}
+
+static void profile_real_workloads(){
+  register_workload(0, workloads_init, workloads_body, workloads_exit);
   PerfData perf_msmts[MAX_CPU_IN_RPI3];
   run_workloads(perf_msmts);
   report_measurement(get_cur_freq(), perf_msmts);
@@ -182,8 +327,14 @@ void learn_workloads(SharedVariable* sv) {
     // This prints the task path from each statring task to the end
     //////////////////////////////////////////////////////////////
   print_task_path();
+  get_critical_path(sv);
+  //do via exec
+  qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
+  test_schedule(*sv);
+  qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
+  test_schedule(*sv);
 
-    //////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////
     
     //////////////////////////////////////////////////////////////
     // Sample code 3: Profile a sequence of workloads with PMU
@@ -192,7 +343,8 @@ void learn_workloads(SharedVariable* sv) {
     // at the end of this file.
     //////////////////////////////////////////////////////////////
 
- profile_workloads();
+//  profile_sample_workloads();
+  profile_real_workloads();
     //////////////////////////////////////////////////////////////
 }
 
@@ -243,6 +395,8 @@ static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
 
   int w_idx;
   int prospective_workload;
+
+
   if (core == 1){
     //get a long job
     for (w_idx = num_workloads-1; w_idx >= 0; --w_idx) {
@@ -258,7 +412,9 @@ static inline TaskSelection SJF_scheduler(SharedVariable *sv, const int core,
         break;
       }
     }
-  } else {//get a short job
+  }
+
+  else {//get a short job
 
     for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
       // Choose one possible task
@@ -388,7 +544,7 @@ void start_scheduling(SharedVariable* sv) {
 //  memcpy(copy, sv->workloads, sizeof(sv->workloads));
 //
 //  long long q_start_time = get_current_time_us();
-//  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+//  qsort( copy, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time );
 //  int qs_time = (int)(get_current_time_us()-q_start_time);
 //  printf("Quicksort takes %d \xC2\xB5s.\n", qs_time);
 //
@@ -396,9 +552,9 @@ void start_scheduling(SharedVariable* sv) {
 //    assert(copy[w_idx].wl == sv->workloads[w_idx].wl);
 ////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
 //  }
-  qsort( sv->workloads, (size_t)NUM_WORKLOADS, sizeof(WLxTime), compare );
+//  qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
   memset(sv->scheduledWorkloads, 0, sizeof(sv->scheduledWorkloads));
-  printf("Workloads sorted:\n");
+//  printf("Workloads sorted:\n");
 //  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
 //    sv->sortedWorkloads[w_idx] = (unsigned short int) sv->workloads[w_idx].wl;
 ////    printf("Workload %2d takes %d \xC2\xB5s.\n", arr[w_idx].wl, arr[w_idx].time);
@@ -413,7 +569,7 @@ void finish_scheduling(SharedVariable* sv) {
 	// TODO: Fill the body if needed
   int time = (int)(get_current_time_us() - sv->start_time);
   double pow = (double) ((
-                                 (time)/(1000 * 1000))
+          (double)(time)/(1000 * 1000))
                          * (1050));//if max
   printf("Power: %f mW.\nRun Time: %d\xC2\xB5s.\n", pow, time);
 
@@ -452,6 +608,24 @@ static void report_measurement(int freq, PerfData* perf_msmts) {
         printf("[Core %d] iTLB Misses: %u\n", core, pf->iTLBmiss);
     }
 }
+
+static void* real_ret_workload[NUM_WORKLOADS];
+static void* workloads_init(void* unused) {
+  for (int i=0; i < NUM_WORKLOADS; ++i){
+    real_ret_workload[i] = get_workload(i)->workload_init(NULL);
+  }
+}
+static void* workloads_body(void* unused) {
+  for (int i=0; i < NUM_WORKLOADS; ++i){
+    get_workload(i)->workload_body(real_ret_workload[i]);
+  }
+}
+static void* workloads_exit(void* unused) {
+  for (int i=0; i < NUM_WORKLOADS; ++i){
+    get_workload(i)->workload_exit(real_ret_workload[i]);
+  }
+}
+
 
 // Initialize the first five tasks
 static void* p_ret_workload[5];
