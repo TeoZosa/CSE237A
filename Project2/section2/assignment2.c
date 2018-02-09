@@ -39,10 +39,32 @@ static void* workloads_init(void*);
 static void* workloads_body(void*);
 static void* workloads_exit(void*);
 
+static const char* set_freq_get_string(int isMax) {
+
+  const char *freq;
+  if (isMax) {
+    set_by_max_freq();
+    freq = max;
+  } else {
+    set_by_min_freq();
+    freq = min;
+  }
+  return freq;
+}
+
+static const char* get_sorting_criteria_string(int is_exec) {
+  const char* sorting_criteria;
+  if (is_exec){
+    sorting_criteria = exec;
+  } else{
+    sorting_criteria = crit;
+  }
+  return sorting_criteria;
+}
 
 static double cumulative_moving_avg(double avg, double new_datum, unsigned short int num_data){
   //num data points NOT including curr data point
-  return (new_datum + (num_data) * avg)/num_data+1;
+  return (new_datum + (num_data) * avg)/(num_data+1);
 }
 
 static void update_SV_avg(SharedVariable* sv, double new_datum) {
@@ -50,6 +72,9 @@ static void update_SV_avg(SharedVariable* sv, double new_datum) {
   double avg = sv->avg_pow_curr_schedule; //note: if this is garbage, should be multiplied by 0 anyway
   sv->avg_pow_curr_schedule = cumulative_moving_avg(avg, new_datum, num_data);
   ++sv->times_run_curr_schedule;//includes curr_data point
+  printf("Curr Power: %f\n", new_datum);
+  printf("Average Power: %f\n", sv->avg_pow_curr_schedule);
+
 }
 
 static void init_for_scheduling(SharedVariable* sv){
@@ -97,28 +122,7 @@ static void test_schedule(SharedVariable* v){
   set_ondemand_governor();
   program_exit(v);
 }
-static const char* set_freq_get_string(int isMax) {
 
-  const char *freq;
-  if (isMax) {
-    set_by_max_freq();
-    freq = max;
-  } else {
-    set_by_min_freq();
-    freq = min;
-  }
-  return freq;
-}
-
-static const char* get_sorting_criteria_string(int is_exec) {
-  const char* sorting_criteria;
-  if (is_exec){
-    sorting_criteria = exec;
-  } else{
-    sorting_criteria = crit;
-  }
-  return sorting_criteria;
-}
 
 static void run_test_schedule_single(int sort_by_exec_time, SharedVariable* sv) {
   init_for_scheduling(sv);
@@ -144,8 +148,8 @@ static inline void set_best_schedule_and_print(SharedVariable* sv) {
   const char *freq = set_freq_get_string(sv->is_max_freq_best);
   const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
 
-  printf("Sorted by: %s\n", sorting_criteria);
   printf("Freq:  %s\n", freq);
+  printf("Sorted by: %s\n", sorting_criteria);
   printf("Average Power: %f\n", sv->best_pow);
 //  printf("Average Time: %lld\xC2\xB5s.\n", sv->best_pow);
   printf("Priority List:\n\n");
@@ -268,6 +272,8 @@ workload_index,
 
   return crit_val_table[workload_index];
 }
+
+
 
 static inline void get_critical_path(SharedVariable* sv) {
   int num_workloads = get_num_workloads();
