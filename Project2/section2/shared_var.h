@@ -38,12 +38,17 @@ typedef struct shared_variable {
 	WLxTime workloads[NUM_WORKLOADS];
   bool no_best_schedule_yet;
   bool schedule_feasible; // if schedule ever over 1 s, don't choose it; can't risk it.
+
+//  below: different variables we are optimizing for
   unsigned short int times_run_curr_schedule; // for a configuration to average the times
   double avg_pow_curr_schedule;
+
   bool is_max_freq;
   bool is_max_freq_best;
-	bool is_exec_time;
-	bool is_exec_time_best;
+
+  bool is_exec_time;
+  bool is_exec_time_best;
+
   double best_pow;
   WLxTime workloads_best_ordering[NUM_WORKLOADS];
 
