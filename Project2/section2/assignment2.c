@@ -334,11 +334,13 @@ void learn_workloads(SharedVariable* sv) {
     get_critical_path(sv);
 
     qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_exec_time);
+    sv->is_exec_time = 1;
     test_schedule(sv);
 
     sv->is_first_run = false;
 
     qsort(sv->workloads, (size_t) NUM_WORKLOADS, sizeof(WLxTime), compare_crit_time);
+    sv->is_exec_time = 0;
     test_schedule(sv);
 
   }
@@ -352,6 +354,9 @@ void learn_workloads(SharedVariable* sv) {
 //    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
     printf("new w_idx %d ", sv->workloads[w_idx].wl);
   }
+  printf("exec_time sorted? %d\n", sv->is_exec_time_best);
+  printf("is max freq? %d\n", sv->is_max_freq_best);
+
 
   //////////////////////////////////////////////////////////////
     
@@ -613,6 +618,7 @@ void finish_scheduling(SharedVariable* sv) {
     memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = pow;
+    sv->is_exec_time_best = sv->is_exec_time;
   }
     //TODO: find some way to average the runs out in case it picks an outlier
     //i.e. if is_max_freq == is_max_freq_best && is_exec_time_sorted == is_exec_time_sorted_best .. etc.
