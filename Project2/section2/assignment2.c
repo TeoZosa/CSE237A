@@ -341,6 +341,7 @@ void learn_workloads(SharedVariable* sv) {
     test_schedule(*sv);
 
   }
+  sv->is_max_freq =   sv->is_max_freq_best;
 
 
   //////////////////////////////////////////////////////////////
@@ -605,7 +606,7 @@ void finish_scheduling(SharedVariable* sv) {
 
 // of this is our last time out of here, set this so the real scheduling
 // (i.e. next iteration) will know which frequency to use.
-  sv->is_max_freq =   sv->is_max_freq_best;
+  //sv->is_max_freq =   sv->is_max_freq_best;
 
   //if averaging, put counter in sv that increments each time we have the same configuration (since it happens ~6
   // times in a row), zero out before we schedule.
@@ -626,7 +627,8 @@ static void report_measurement(int freq, PerfData* perf_msmts) {
         PerfData* pf = &perf_msmts[core]; 
         if (pf->is_used == 0)
             continue;
-
+	printf("%d\n", freq);
+	printf("tt = %d", (double)freq/1000);
         TimeType time_estimated = (TimeType)pf->cc/(TimeType)((double)freq/1000);
         printf("[Core %d] Execution Time (us): %lld\n", core, time_estimated);
 

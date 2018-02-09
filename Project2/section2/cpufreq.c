@@ -68,9 +68,17 @@ void set_by_min_freq() {
 
 int get_cur_freq() {
 	int curFreq;
-	FILE* fp = fopen(POLICY_PATH"scaling_setspeed", "r");
+	FILE* fp = fopen(POLICY_PATH"cpuinfo_cur_freq", "r");
 	fscanf(fp, "%d", &curFreq);
 	fclose(fp);
+
+	//FILE* fp1 = fopen(POLICY_PATH"scaling_setspeed", "r");
+	//int c = getc(fp1);
+	//while (c != EOF){
+	//putchar(c);
+	//c = getc(fp1);
+//	}
+//		fclose(fp1);
 
 	return curFreq;
 }
