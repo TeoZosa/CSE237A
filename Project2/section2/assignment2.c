@@ -79,7 +79,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
 
   int num_workloads = get_num_workloads();
   int w_idx;
-  int num_iterations = 50;
+  int num_iterations = 10;
   printf("at %s freq.\n", freq);
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
@@ -175,6 +175,9 @@ static int inline calculate_critical_value(int* crit_val_table, int is_successor
     // so the inner if statement only executes once
     int max_val = 0;
     for (int other_workload = 0; other_workload < NUM_WORKLOADS; ++other_workload) {
+      printf("%2d", workload_index);
+      printf(" -> %2d", other_workload);
+      printf(":  %d", is_successor[workload_index][other_workload]);
 
       if (is_successor[workload_index][other_workload]){
         //valid successor
