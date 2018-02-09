@@ -257,10 +257,17 @@ static void get_critical_path(SharedVariable* sv) {
     //since each state only has one successor; accumulate time from start to finish
     int crit_time_alt = sv->workloads[w_idx].time;
     int successor_idx = get_workload(w_idx)->successor_idx;
+//    printf("%2d", w_idx);
+
     while (successor_idx != NULL_TASK) {
+
       crit_time_alt += sv->workloads[successor_idx].time;
+//      printf("( -> %2d", successor_idx);
+
       successor_idx = get_workload(successor_idx)->successor_idx;
     }
+    
+    printf("DP: %d\n Sum: %d\n\n", crit_time, crit_time_alt);
     assert(crit_time == crit_time_alt);
 
     //replace time with this after asserts look good;
