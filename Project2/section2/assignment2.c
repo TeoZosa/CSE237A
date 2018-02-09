@@ -350,7 +350,7 @@ void learn_workloads(SharedVariable* sv) {
 //
 //    sv->workloads[w_idx].wl = sv->workloads_best_ordering[w_idx].wl;
 //    sv->workloads[w_idx].time = sv->workloads_best_ordering[w_idx].time;
-//    printf("new w_idx %d ", sv->workloads[w_idx].wl);
+    printf("new w_idx %d ", sv->workloads[w_idx].wl);
   }
 
   //////////////////////////////////////////////////////////////
@@ -602,14 +602,14 @@ void finish_scheduling(SharedVariable* sv) {
                          * curr_freq_power);//if max
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n", pow, time);
 
-  if(sv->is_first_run || (time < 1000*1000 && pow < sv->best_pow)){
-//    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
-//      printf("best wl_idx = %2d\n", sv->workloads[w_idx].wl);
+  if(sv->is_first_run || (time < (1000*1000) && pow < sv->best_pow)){
+    for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {//maybe this'll do it
+      printf("best wl_idx = %2d\n", sv->workloads[w_idx].wl);
 //
 //      sv->workloads_best_ordering[w_idx].wl = sv->workloads[w_idx].wl;
 //      sv->workloads_best_ordering[w_idx].time = sv->workloads[w_idx].time;
 //
-//    }
+    }
     memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = pow;
