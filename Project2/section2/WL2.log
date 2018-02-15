@@ -1,0 +1,416 @@
+pi@raspberrypi:~/CSE237A/Project2/section2 $ sudo ./main_section2_w2
+The task graph is written to task_graph.pdf
+Initializing INPUTS.
+Initializing OUTPUTS.
+Initializing SMD.
+Initializing DIP.
+ 1 -> 13 ->  7
+ 8 ->  2 ->  0
+ 9 ->  6 ->  7
+10 -> 13 ->  7
+11 -> 12 ->  2 ->  0
+14 ->  4 ->  3 ->  2 ->  0
+15 ->  5
+at MIN freq.
+Workload body  0 finishes in 36570 µs (AVG).
+Workload body  1 finishes in 162984 µs (AVG).
+Workload body  2 finishes in 267879 µs (AVG).
+Workload body  3 finishes in 168702 µs (AVG).
+Workload body  4 finishes in 237483 µs (AVG).
+Workload body  5 finishes in 156097 µs (AVG).
+Workload body  6 finishes in 30758 µs (AVG).
+Workload body  7 finishes in 204082 µs (AVG).
+Workload body  8 finishes in 37352 µs (AVG).
+Workload body  9 finishes in 31556 µs (AVG).
+Workload body 10 finishes in 37484 µs (AVG).
+Workload body 11 finishes in 186969 µs (AVG).
+Workload body 12 finishes in 232534 µs (AVG).
+Workload body 13 finishes in 157691 µs (AVG).
+Workload body 14 finishes in 225718 µs (AVG).
+Workload body 15 finishes in 215667 µs (AVG).
+Sorted By: Critical Time
+Initializing INPUTS.
+Initializing OUTPUTS.
+Initializing SMD.
+Initializing DIP.
+Start scheduling.
+Power: 573.660450 mW.
+Run Time: 1274801µs.
+
+Curr Power: 573.660450
+Average Power: 573.660450
+Power: 573.079500 mW.
+Run Time: 1273510µs.
+
+Curr Power: 573.079500
+Average Power: 573.369975
+Power: 572.152950 mW.
+Run Time: 1271451µs.
+
+Curr Power: 572.152950
+Average Power: 572.964300
+Power: 572.037750 mW.
+Run Time: 1271195µs.
+
+Curr Power: 572.037750
+Average Power: 572.732663
+Power: 571.206600 mW.
+Run Time: 1269348µs.
+
+Curr Power: 571.206600
+Average Power: 572.427450
+Power: 572.038650 mW.
+Run Time: 1271197µs.
+
+Curr Power: 572.038650
+Average Power: 572.362650
+Power: 572.867550 mW.
+Run Time: 1273039µs.
+
+Curr Power: 572.867550
+Average Power: 572.434779
+Power: 573.712200 mW.
+Run Time: 1274916µs.
+
+Curr Power: 573.712200
+Average Power: 572.594456
+Sorted By: Execution Time
+Initializing INPUTS.
+Initializing OUTPUTS.
+Initializing SMD.
+Initializing DIP.
+Start scheduling.
+Power: 608.700600 mW.
+Run Time: 1352668µs.
+
+Curr Power: 608.700600
+Average Power: 608.700600
+Power: 619.918650 mW.
+Run Time: 1377597µs.
+
+Curr Power: 619.918650
+Average Power: 614.309625
+Power: 607.558500 mW.
+Run Time: 1350130µs.
+
+Curr Power: 607.558500
+Average Power: 612.059250
+Power: 604.273950 mW.
+Run Time: 1342831µs.
+
+Curr Power: 604.273950
+Average Power: 610.112925
+Power: 605.432250 mW.
+Run Time: 1345405µs.
+
+Curr Power: 605.432250
+Average Power: 609.176790
+Power: 607.180950 mW.
+Run Time: 1349291µs.
+
+Curr Power: 607.180950
+Average Power: 608.844150
+Power: 604.850850 mW.
+Run Time: 1344113µs.
+
+Curr Power: 604.850850
+Average Power: 608.273679
+Power: 604.689300 mW.
+Run Time: 1343754µs.
+
+Curr Power: 604.689300
+Average Power: 607.825631
+at MAX freq.
+Workload body  0 finishes in 17662 µs (AVG).
+Workload body  1 finishes in 113176 µs (AVG).
+Workload body  2 finishes in 133342 µs (AVG).
+Workload body  3 finishes in 83988 µs (AVG).
+Workload body  4 finishes in 118215 µs (AVG).
+Workload body  5 finishes in 108385 µs (AVG).
+Workload body  6 finishes in 15242 µs (AVG).
+Workload body  7 finishes in 101594 µs (AVG).
+Workload body  8 finishes in 18474 µs (AVG).
+Workload body  9 finishes in 15620 µs (AVG).
+Workload body 10 finishes in 18469 µs (AVG).
+Workload body 11 finishes in 93075 µs (AVG).
+Workload body 12 finishes in 115744 µs (AVG).
+Workload body 13 finishes in 78513 µs (AVG).
+Workload body 14 finishes in 112337 µs (AVG).
+Workload body 15 finishes in 107106 µs (AVG).
+Sorted By: Critical Time
+Initializing INPUTS.
+Initializing OUTPUTS.
+Initializing SMD.
+Initializing DIP.
+Start scheduling.
+Power: 768.773250 mW.
+Run Time: 732165µs.
+
+Curr Power: 768.773250
+Average Power: 768.773250
+Power: 793.371600 mW.
+Run Time: 755592µs.
+
+Curr Power: 793.371600
+Average Power: 781.072425
+Power: 780.092250 mW.
+Run Time: 742945µs.
+
+Curr Power: 780.092250
+Average Power: 780.745700
+Power: 802.184250 mW.
+Run Time: 763985µs.
+
+Curr Power: 802.184250
+Average Power: 786.105338
+Power: 767.709600 mW.
+Run Time: 731152µs.
+
+Curr Power: 767.709600
+Average Power: 782.426190
+Power: 772.907100 mW.
+Run Time: 736102µs.
+
+Curr Power: 772.907100
+Average Power: 780.839675
+Power: 775.751550 mW.
+Run Time: 738811µs.
+
+Curr Power: 775.751550
+Average Power: 780.112800
+Power: 790.291950 mW.
+Run Time: 752659µs.
+
+Curr Power: 790.291950
+Average Power: 781.385194
+Power: 768.371100 mW.
+Run Time: 731782µs.
+
+Curr Power: 768.371100
+Average Power: 779.939183
+Power: 770.003850 mW.
+Run Time: 733337µs.
+
+Curr Power: 770.003850
+Average Power: 778.945650
+Power: 788.176200 mW.
+Run Time: 750644µs.
+
+Curr Power: 788.176200
+Average Power: 779.784791
+Power: 768.800550 mW.
+Run Time: 732191µs.
+
+Curr Power: 768.800550
+Average Power: 778.869438
+Power: 761.575500 mW.
+Run Time: 725310µs.
+
+Curr Power: 761.575500
+Average Power: 777.539135
+Power: 769.982850 mW.
+Run Time: 733317µs.
+
+Curr Power: 769.982850
+Average Power: 776.999400
+Sorted By: Execution Time
+Initializing INPUTS.
+Initializing OUTPUTS.
+Initializing SMD.
+Initializing DIP.
+Start scheduling.
+Power: 696.220350 mW.
+Run Time: 663067µs.
+
+Curr Power: 696.220350
+Average Power: 696.220350
+Power: 694.820700 mW.
+Run Time: 661734µs.
+
+Curr Power: 694.820700
+Average Power: 695.520525
+Power: 695.008650 mW.
+Run Time: 661913µs.
+
+Curr Power: 695.008650
+Average Power: 695.349900
+Power: 695.328900 mW.
+Run Time: 662218µs.
+
+Curr Power: 695.328900
+Average Power: 695.344650
+Power: 695.321550 mW.
+Run Time: 662211µs.
+
+Curr Power: 695.321550
+Average Power: 695.340030
+Power: 696.412500 mW.
+Run Time: 663250µs.
+
+Curr Power: 696.412500
+Average Power: 695.518775
+Power: 696.074400 mW.
+Run Time: 662928µs.
+
+Curr Power: 696.074400
+Average Power: 695.598150
+Power: 696.158400 mW.
+Run Time: 663008µs.
+
+Curr Power: 696.158400
+Average Power: 695.668181
+Power: 695.987250 mW.
+Run Time: 662845µs.
+
+Curr Power: 695.987250
+Average Power: 695.703633
+Power: 697.144350 mW.
+Run Time: 663947µs.
+
+Curr Power: 697.144350
+Average Power: 695.847705
+Power: 696.801000 mW.
+Run Time: 663620µs.
+
+Curr Power: 696.801000
+Average Power: 695.934368
+Power: 696.260250 mW.
+Run Time: 663105µs.
+
+Curr Power: 696.260250
+Average Power: 695.961525
+Power: 696.546900 mW.
+Run Time: 663378µs.
+
+Curr Power: 696.546900
+Average Power: 696.006554
+Power: 696.840900 mW.
+Run Time: 663658µs.
+
+Curr Power: 696.840900
+Average Power: 696.066150
+Power: 697.077150 mW.
+Run Time: 663883µs.
+
+Curr Power: 697.077150
+Average Power: 696.133550
+Power: 696.330600 mW.
+Run Time: 663172µs.
+
+Curr Power: 696.330600
+Average Power: 696.145866
+			--Optimal Schedule--
+Freq:  MAX
+Sorted by: Execution Time
+Average Power: 696.145866
+Priority List:
+
+0: 	WL 6
+1: 	WL 9
+2: 	WL 0
+3: 	WL 10
+4: 	WL 8
+5: 	WL 13
+6: 	WL 3
+7: 	WL 11
+8: 	WL 7
+9: 	WL 15
+10: 	WL 5
+11: 	WL 14
+12: 	WL 1
+13: 	WL 12
+14: 	WL 4
+15: 	WL 2
+[Core 0] Execution Time (us): 1262442
+[Core 0] Cycle Count: 1514931247
+[Core 0] Instructions: 757667538
+[Core 0] L1 Cache Accesses: 377711903
+[Core 0] L1 Cache Misses: 11754168
+[Core 0] L1 Miss Ratio: 0.031119
+[Core 0] LLC Accesses: 23696921
+[Core 0] LLC Misses: 2006445
+[Core 0] LLC Miss Ratio: 0.084671
+[Core 0] iTLB Misses: 1007
+Your learn_workloads() function takes 97 secs.
+Start scheduling.
+Power: 695.741550 mW.
+Run Time: 662611µs.
+
+Curr Power: 695.741550
+Average Power: 696.122082
+Power: 696.479700 mW.
+Run Time: 663314µs.
+
+Curr Power: 696.479700
+Average Power: 696.141950
+Power: 695.350950 mW.
+Run Time: 662239µs.
+
+Curr Power: 695.350950
+Average Power: 696.100318
+Power: 694.580250 mW.
+Run Time: 661505µs.
+
+Curr Power: 694.580250
+Average Power: 696.024315
+Power: 695.471700 mW.
+Run Time: 662354µs.
+
+Curr Power: 695.471700
+Average Power: 695.998000
+Power: 695.460150 mW.
+Run Time: 662343µs.
+
+Curr Power: 695.460150
+Average Power: 695.973552
+Power: 695.381400 mW.
+Run Time: 662268µs.
+
+Curr Power: 695.381400
+Average Power: 695.947807
+Power: 695.396100 mW.
+Run Time: 662282µs.
+
+Curr Power: 695.396100
+Average Power: 695.924819
+Power: 694.933050 mW.
+Run Time: 661841µs.
+
+Curr Power: 694.933050
+Average Power: 695.885148
+Power: 695.095800 mW.
+Run Time: 661996µs.
+
+Curr Power: 695.095800
+Average Power: 695.854788
+Power: 695.068500 mW.
+Run Time: 661970µs.
+
+Curr Power: 695.068500
+Average Power: 695.825667
+Power: 694.780800 mW.
+Run Time: 661696µs.
+
+Curr Power: 694.780800
+Average Power: 695.788350
+Power: 694.936200 mW.
+Run Time: 661844µs.
+
+Curr Power: 694.936200
+Average Power: 695.758966
+Power: 695.029650 mW.
+Run Time: 661933µs.
+
+Curr Power: 695.029650
+Average Power: 695.734655
+Power: 694.586550 mW.
+Run Time: 661511µs.
+
+Curr Power: 694.586550
+Average Power: 695.697619
+Power: 695.363550 mW.
+Run Time: 662251µs.
+
+Curr Power: 695.363550
+Average Power: 695.687180
+Program finished.
