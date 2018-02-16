@@ -405,6 +405,7 @@ void learn_workloads(SharedVariable* sv) {
     run_test_schedule_all(sv);
   }
   set_best_schedule_and_print(sv);
+  init_for_scheduling(sv);//reset counters for real run
 //  profile_sample_workloads();
 //  profile_real_workloads();
 }
