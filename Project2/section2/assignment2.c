@@ -394,6 +394,7 @@ void learn_workloads(SharedVariable* sv) {
   sv->no_best_schedule_yet = true;
 SharedVariable _svMin;
   SharedVariable *svMin = &_svMin;
+  program_init(svMin);
   svMin->no_best_schedule_yet = true;
 	// This function is executed before the scheduling simulation.
 
