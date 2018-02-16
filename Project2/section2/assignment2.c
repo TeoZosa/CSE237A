@@ -426,7 +426,7 @@ void learn_workloads(SharedVariable* sv) {
 //  set_best_schedule_and_print(svMin);
 
   double time_diff = (1000*1000) - sv->best_time; //should be positive in this case
-  double error_term = 50000;//us
+  double error_term = 100000;//us
   printf("time diff %f\n", time_diff);
 
     for (int i = NUM_WORKLOADS-1; i >= 0 && time_diff > 0+error_term; i--){
@@ -442,7 +442,12 @@ void learn_workloads(SharedVariable* sv) {
 
   get_critical_path(sv);
   run_test_schedule_all(sv);
-  set_best_schedule_and_print(sv);
+  printf("Priority List:\n\n");
+
+  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
+    const char *curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
+    printf("%d: \tWL %d\tFreq %d\n", w_idx, sv->workloads[w_idx].wl, sv->workloads[w_idx].maxFreq);
+  }
   init_scheduler(sv); //reset for the real run
 
 //  profile_sample_workloads();
