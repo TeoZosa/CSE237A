@@ -67,12 +67,14 @@ static double cumulative_moving_avg(double avg, double new_datum, unsigned short
   return (new_datum + (num_data) * avg)/(num_data+1);
 }
 
-static void update_SV_avg(SharedVariable* sv, double new_datum) {
+static void update_SV_avg(SharedVariable* sv, double new_pow_datum, long long new_time_datum) {
   unsigned short int num_data = sv->times_run_curr_schedule;
-  double avg = sv->avg_pow_curr_schedule; //note: if this is garbage, should be multiplied by 0 anyway
-  sv->avg_pow_curr_schedule = cumulative_moving_avg(avg, new_datum, num_data);
+  double pow_avg = sv->avg_pow_curr_schedule; //note: if this is garbage, should be multiplied by 0 anyway
+  sv->avg_pow_curr_schedule = cumulative_moving_avg(pow_avg, new_pow_datum, num_data);
+  double time_avg = sv->avg_time_curr_schedule; //note: if this is garbage, should be multiplied by 0 anyway
+  sv->avg_time_curr_schedule = cumulative_moving_avg(time_avg, new_time_datum, num_data);
   ++sv->times_run_curr_schedule;//includes curr_data point
-  printf("Curr Power: %f\n", new_datum);
+  printf("Curr Power: %f\n", new_pow_datum);
   printf("Average Power: %f\n", sv->avg_pow_curr_schedule);
 
 }
@@ -81,18 +83,21 @@ static void init_for_scheduling(SharedVariable* sv){
   sv->schedule_feasible = true;
   sv->times_run_curr_schedule = 0;
   sv->avg_pow_curr_schedule = 0;
+  sv->avg_time_curr_schedule = 0;
 }
 
 
 static void check_if_tested_schedule_is_better(SharedVariable* sv){
   const bool under_time_threshold = sv->schedule_feasible;
   const double curr_schedule_power = sv->avg_pow_curr_schedule;
+  const double curr_schedule_time = sv->avg_time_curr_schedule;
 
   if (under_time_threshold && (sv->no_best_schedule_yet || curr_schedule_power < sv->best_pow) ){
     sv->no_best_schedule_yet = false; //redundant if I set best pow's initial value very high?
     memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = curr_schedule_power;
+    sv->avg_time_curr_schedule = curr_schedule_time;
     sv->is_exec_time_best = sv->is_exec_time;
   }
 }
@@ -137,7 +142,7 @@ static void run_test_schedule_single(int sort_by_exec_time, SharedVariable* sv) 
 }
 
 static void run_test_schedule_all(SharedVariable* sv) {
-  for (int sort_by_exec_time = 0; sort_by_exec_time <= 1; ++sort_by_exec_time){
+  for (int sort_by_exec_time = 0; sort_by_exec_time <= 0; ++sort_by_exec_time){
     printf("Sorted By: %s\n", get_sorting_criteria_string(sort_by_exec_time));
     run_test_schedule_single(sort_by_exec_time, sv);
   }
@@ -184,6 +189,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
     int i_time = (int) (get_current_time_us() - curTime);
     sv->workloads[w_idx].wl = w_idx;
     sv->workloads[w_idx].time = i_time;
+    sv->workloads[w_idx].maxFreq = isMax;
     void *exit_ret = workload_item->workload_exit(init_ret);
   }
   //average execution times
@@ -384,7 +390,7 @@ static void profile_real_workloads(){
 
 void learn_workloads(SharedVariable* sv) {
   sv->no_best_schedule_yet = true;
-
+SharedVariable svMin;
 	// This function is executed before the scheduling simulation.
 
 
@@ -395,8 +401,14 @@ void learn_workloads(SharedVariable* sv) {
 
   //do via exec
   print_task_path();
+  svMin.is_max_freq = (bool)0;
 
-  for (int is_max_freq = 0; is_max_freq <= 1; ++is_max_freq){
+
+  run_workloads_sequential(0, &svMin);//updates workload execution times in sv.
+  get_critical_path(&svMin);//critical path relies on executions times, which relies on run_workloads
+  run_test_schedule_all(&svMin);
+
+  for (int is_max_freq = 1; is_max_freq <= 1; ++is_max_freq){
     sv->is_max_freq = (bool)is_max_freq;
 
 
@@ -404,7 +416,19 @@ void learn_workloads(SharedVariable* sv) {
     get_critical_path(sv);//critical path relies on executions times, which relies on run_workloads
     run_test_schedule_all(sv);
   }
+
   set_best_schedule_and_print(sv);
+  set_best_schedule_and_print(&svMin);
+
+  double time_diff = svMin.avg_time_curr_schedule - sv->avg_time_curr_schedule; //should be positive in this case
+  double error_term = 50000;//us
+    for (int i = NUM_WORKLOADS; i >= 0 && time_diff > 0+error_term; i--){
+      int wl_time_diff = svMin.workloads[i].time - sv->workloads[i].time;
+      if (sv->workloads[i].maxFreq && time_diff - wl_time_diff >0){
+        sv->workloads[i].maxFreq = 0;
+        time_diff -= wl_time_diff;
+      }
+    }//squeeze it until time diff is negligible
 //  profile_sample_workloads();
   profile_real_workloads();
 }
@@ -448,11 +472,11 @@ static inline TaskSelection LJF_scheduler(SharedVariable *sv, const int core,
   TaskSelection task_selection;
 
   // Choose frequency
-  if (sv->is_max_freq){
-    task_selection.freq = FREQ_CTL_MAX;
-  } else{
-    task_selection.freq = FREQ_CTL_MIN;
-  }
+//  if (sv->is_max_freq){
+//    task_selection.freq = FREQ_CTL_MAX;
+//  } else{
+//    task_selection.freq = FREQ_CTL_MIN;
+//  }
 
   int w_idx;
   int prospective_workload;
@@ -468,6 +492,12 @@ static inline TaskSelection LJF_scheduler(SharedVariable *sv, const int core,
       // available
       task_selection.task_idx = prospective_workload;
       sv->scheduledWorkloads[prospective_workload] = 1;
+      if (sv->workloads[w_idx].maxFreq){
+        task_selection.freq = FREQ_CTL_MAX;
+      } else{
+        task_selection.freq = FREQ_CTL_MIN;
+      }
+
       break;
     }
 
@@ -522,7 +552,7 @@ void finish_scheduling(SharedVariable* sv) {
   if (time >= sec){
     sv->schedule_feasible = false;
   }
-  update_SV_avg(sv, pow);
+  update_SV_avg(sv, pow, time);
 }
 
 
