@@ -97,7 +97,7 @@ static void check_if_tested_schedule_is_better(SharedVariable* sv){
     memcpy(&sv->workloads_best_ordering, &sv->workloads, sizeof(sv->workloads));
     sv->is_max_freq_best = sv->is_max_freq;
     sv->best_pow = curr_schedule_power;
-    sv->avg_time_curr_schedule = curr_schedule_time;
+    sv->best_time = curr_schedule_time;
     sv->is_exec_time_best = sv->is_exec_time;
   }
 }
