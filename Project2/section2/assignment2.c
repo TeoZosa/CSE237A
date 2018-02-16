@@ -420,7 +420,7 @@ SharedVariable svMin;
   set_best_schedule_and_print(sv);
   set_best_schedule_and_print(&svMin);
 
-  double time_diff = svMin.avg_time_curr_schedule - sv->avg_time_curr_schedule; //should be positive in this case
+  double time_diff = (1000*1000) - sv->avg_time_curr_schedule; //should be positive in this case
   double error_term = 50000;//us
     for (int i = NUM_WORKLOADS; i >= 0 && time_diff > 0+error_term; i--){
       int wl_time_diff = svMin.workloads[i].time - sv->workloads[i].time;
@@ -429,6 +429,11 @@ SharedVariable svMin;
         time_diff -= wl_time_diff;
       }
     }//squeeze it until time diff is negligible
+
+  get_critical_path(sv);
+  run_test_schedule_all(sv);
+  set_best_schedule_and_print(sv);
+
 //  profile_sample_workloads();
   profile_real_workloads();
 }
