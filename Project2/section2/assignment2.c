@@ -427,12 +427,15 @@ void learn_workloads(SharedVariable* sv) {
 
   double time_diff = (1000*1000) - sv->best_time; //should be positive in this case
   double error_term = 50000;//us
+  printf("time diff %f", time_diff);
 
-    for (int i = NUM_WORKLOADS; i >= 0 && time_diff > 0+error_term; i--){
+    for (int i = NUM_WORKLOADS-1; i >= 0 && time_diff > 0+error_term; i--){
       int wl_time_diff = sv->workloads[i].time;//double time max
+      printf("here");
       if (sv->workloads[i].maxFreq && time_diff - wl_time_diff >0){
+        printf("")
         sv->workloads[i].maxFreq = 0;
-        sv->workloads[i].time = 2 * wl_time_diff;//replace with old work time
+        sv->workloads[i].time *= 2;//replace with old work time
         time_diff -= wl_time_diff;
       }
     }//squeeze it until time diff is negligible
