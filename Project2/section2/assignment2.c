@@ -392,7 +392,9 @@ static void profile_real_workloads(){
 
 void learn_workloads(SharedVariable* sv) {
   sv->no_best_schedule_yet = true;
-SharedVariable svMin;
+SharedVariable _svMin;
+  SharedVariable *svMin = &_svMin;
+  svMin->no_best_schedule_yet = true;
 	// This function is executed before the scheduling simulation.
 
 
@@ -403,12 +405,12 @@ SharedVariable svMin;
 
   //do via exec
   print_task_path();
-  svMin.is_max_freq = (bool)0;
+  svMin->is_max_freq = (bool)0;
 
 
-  run_workloads_sequential(0, &svMin);//updates workload execution times in sv.
-  get_critical_path(&svMin);//critical path relies on executions times, which relies on run_workloads
-  run_test_schedule_all(&svMin);
+  run_workloads_sequential(0, svMin);//updates workload execution times in sv.
+  get_critical_path(svMin);//critical path relies on executions times, which relies on run_workloads
+  run_test_schedule_all(svMin);
 
   for (int is_max_freq = 1; is_max_freq <= 1; ++is_max_freq){
     sv->is_max_freq = (bool)is_max_freq;
@@ -420,16 +422,16 @@ SharedVariable svMin;
   }
 
   set_best_schedule_and_print(sv);
-  set_best_schedule_and_print(&svMin);
+  set_best_schedule_and_print(svMin);
 
   double time_diff = (1000*1000) - sv->avg_time_curr_schedule; //should be positive in this case
   double error_term = 50000;//us
 
     for (int i = NUM_WORKLOADS; i >= 0 && time_diff > 0+error_term; i--){
-      int wl_time_diff = svMin.workloads[i].time - sv->workloads[i].time;
+      int wl_time_diff = svMin->workloads[i].time - sv->workloads[i].time;
       if (sv->workloads[i].maxFreq && time_diff - wl_time_diff >0){
         sv->workloads[i].maxFreq = 0;
-        sv->workloads[i].time = svMin.workloads[i].time;//replace with old work time
+        sv->workloads[i].time = svMin->workloads[i].time;//replace with old work time
         time_diff -= wl_time_diff;
       }
     }//squeeze it until time diff is negligible
