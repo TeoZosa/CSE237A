@@ -157,13 +157,13 @@ static inline void set_best_schedule_and_print(SharedVariable* sv) {
 //  printf("Sorted by: %s\n", sorting_criteria);
 //  printf("Average Power: %f\n", sv->best_pow);
 ////  printf("Average Time: %lld\xC2\xB5s.\n", sv->best_pow);
-  printf("Priority List:\n\n");
-  sv->is_max_freq =   sv->is_max_freq_best;
+//  printf("Priority List:\n\n");
+//  sv->is_max_freq =   sv->is_max_freq_best;
 
   for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
     sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
-    const char *curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
-    printf("%d: \tWL %d\tFreq %d\n", w_idx, sv->workloads[w_idx].wl, sv->workloads[w_idx].maxFreq);
+//    const char *curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
+//    printf("%d: \tWL %d\tFreq %d\n", w_idx, sv->workloads[w_idx].wl, sv->workloads[w_idx].maxFreq);
   }
 }
 
@@ -568,7 +568,6 @@ void finish_scheduling(SharedVariable* sv) {
   int sec = 1000 * 1000;
   double pow =  (((double)(time)/(double)(sec))
                          * curr_freq_power)*2;//two cores
-  printf("Run Time: %lld\xC2\xB5s.\n\n", time);
 //  printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n\n", pow, time);
 
   long long est_time = 0;
@@ -588,6 +587,8 @@ void finish_scheduling(SharedVariable* sv) {
                 * this_freq_power);
   }
   printf("Est Power: %f mW.\n", est_pow);
+  printf("Run Time: %lld\xC2\xB5s.\n\n", time);
+
 
 //  printf("Est Power: %f mW.\nEst Run Time: %lld\xC2\xB5s.\n\n", est_pow, est_time/2);
 
