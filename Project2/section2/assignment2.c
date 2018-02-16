@@ -150,18 +150,20 @@ static void run_test_schedule_all(SharedVariable* sv) {
 
 static inline void set_best_schedule_and_print(SharedVariable* sv) {
 //  printf("\t\t\t--Optimal Schedule--\n");
-  const char *freq = set_freq_get_string(sv->is_max_freq_best);
-  const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
+//  const char *freq = set_freq_get_string(sv->is_max_freq_best);
+//  const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
 
 //  printf("Freq:  %s\n", freq);
 //  printf("Sorted by: %s\n", sorting_criteria);
 //  printf("Average Power: %f\n", sv->best_pow);
 ////  printf("Average Time: %lld\xC2\xB5s.\n", sv->best_pow);
-//  printf("Priority List:\n\n");
+  printf("Priority List:\n\n");
   sv->is_max_freq =   sv->is_max_freq_best;
+  char *curr_freq;
   for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
     sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
-//    printf("%d: \tWL %d\n", w_idx, sv->workloads[w_idx].wl);
+    curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
+    printf("%d: \tWL %d\tFreq %s\n", w_idx, sv->workloads[w_idx].wl, curr_freq);
   }
 }
 
@@ -422,6 +424,7 @@ SharedVariable svMin;
 
   double time_diff = (1000*1000) - sv->avg_time_curr_schedule; //should be positive in this case
   double error_term = 50000;//us
+
     for (int i = NUM_WORKLOADS; i >= 0 && time_diff > 0+error_term; i--){
       int wl_time_diff = svMin.workloads[i].time - sv->workloads[i].time;
       if (sv->workloads[i].maxFreq && time_diff - wl_time_diff >0){
@@ -434,6 +437,7 @@ SharedVariable svMin;
   get_critical_path(sv);
   run_test_schedule_all(sv);
   set_best_schedule_and_print(sv);
+  init_scheduler(sv); //reset for the real run
 
 //  profile_sample_workloads();
 //  profile_real_workloads();
@@ -572,7 +576,7 @@ void finish_scheduling(SharedVariable* sv) {
                 * this_freq_power);
   }
 
-  printf("Est Power: %f mW.\nEst Run Time: %lld\xC2\xB5s.\n\n", est_pow, est_time);
+  printf("Est Power: %f mW.\nEst Run Time: %lld\xC2\xB5s.\n\n", est_pow, est_time/2);
 
   if (time >= sec){
     sv->schedule_feasible = false;
