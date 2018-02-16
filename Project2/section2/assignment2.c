@@ -76,6 +76,8 @@ static void update_SV_avg(SharedVariable* sv, double new_pow_datum, long long ne
   ++sv->times_run_curr_schedule;//includes curr_data point
 //  printf("Curr Power: %f\n", new_pow_datum);
 //  printf("Average Power: %f\n", sv->avg_pow_curr_schedule);
+//  printf("Average Time: %f\n", sv->avg_time_curr_schedule);
+
 
 }
 
@@ -423,6 +425,8 @@ void learn_workloads(SharedVariable* sv) {
   }
 
   set_best_schedule_and_print(sv);
+  printf("Average Power: %f\n", sv->best_pow);
+  printf("Average Time: %f\n", sv->best_time);
 //  set_best_schedule_and_print(svMin);
 
   double time_diff = (1000*1000) - sv->best_time; //should be positive in this case
@@ -448,7 +452,9 @@ void learn_workloads(SharedVariable* sv) {
     const char *curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
     printf("%d: \tWL %d\tFreq %d\n", w_idx, sv->workloads[w_idx].wl, sv->workloads[w_idx].maxFreq);
   }
-  init_scheduler(sv); //reset for the real run
+  printf("Average Power: %f\n", sv->best_pow);
+  printf("Average Time: %f\n", sv->best_time);
+  init_for_scheduling(sv); //reset for the real run
 
 //  profile_sample_workloads();
 //  profile_real_workloads();
