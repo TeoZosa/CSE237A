@@ -452,8 +452,8 @@ void learn_workloads(SharedVariable* sv) {
     const char *curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
     printf("%d: \tWL %d\tFreq %d\n", w_idx, sv->workloads[w_idx].wl, sv->workloads[w_idx].maxFreq);
   }
-  printf("Average Power: %f\n", sv->best_pow);
-  printf("Average Time: %f\n", sv->best_time);
+  printf("Average Power: %f\n", sv->avg_pow_curr_schedule);
+  printf("Average Time: %f\n", sv->avg_time_curr_schedule);
   init_for_scheduling(sv); //reset for the real run
 
 //  profile_sample_workloads();
