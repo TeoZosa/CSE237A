@@ -74,8 +74,8 @@ static void update_SV_avg(SharedVariable* sv, double new_pow_datum, long long ne
   double time_avg = sv->avg_time_curr_schedule; //note: if this is garbage, should be multiplied by 0 anyway
   sv->avg_time_curr_schedule = cumulative_moving_avg(time_avg, new_time_datum, num_data);
   ++sv->times_run_curr_schedule;//includes curr_data point
-  printf("Curr Power: %f\n", new_pow_datum);
-  printf("Average Power: %f\n", sv->avg_pow_curr_schedule);
+//  printf("Curr Power: %f\n", new_pow_datum);
+//  printf("Average Power: %f\n", sv->avg_pow_curr_schedule);
 
 }
 
@@ -587,8 +587,9 @@ void finish_scheduling(SharedVariable* sv) {
     est_pow += (((double)(this_time)/(double)(sec))
                 * this_freq_power);
   }
+  printf("Est Power: %f mW.\n", est_pow);
 
-  printf("Est Power: %f mW.\nEst Run Time: %lld\xC2\xB5s.\n\n", est_pow, est_time/2);
+//  printf("Est Power: %f mW.\nEst Run Time: %lld\xC2\xB5s.\n\n", est_pow, est_time/2);
 
   if (time >= sec){
     sv->schedule_feasible = false;
