@@ -426,6 +426,7 @@ SharedVariable svMin;
       int wl_time_diff = svMin.workloads[i].time - sv->workloads[i].time;
       if (sv->workloads[i].maxFreq && time_diff - wl_time_diff >0){
         sv->workloads[i].maxFreq = 0;
+        sv->workloads[i].time = svMin.workloads[i].time;//replace with old work time
         time_diff -= wl_time_diff;
       }
     }//squeeze it until time diff is negligible
@@ -551,8 +552,27 @@ void finish_scheduling(SharedVariable* sv) {
   long long time = (get_current_time_us() - sv->start_time);
   int sec = 1000 * 1000;
   double pow =  (((double)(time)/(double)(sec))
-                         * curr_freq_power);//if max
+                         * curr_freq_power)*2;//two cores
   printf("Power: %f mW.\nRun Time: %lld\xC2\xB5s.\n\n", pow, time);
+
+  long long est_time = 0;
+  double est_pow = 0;
+  long long this_time;
+  int this_freq_power;
+  for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx){
+    this_time = sv->workloads[w_idx].time;
+    est_time += this_time;
+    if (sv->workloads[w_idx].maxFreq){
+      this_freq_power = 1050;
+    } else{
+      this_freq_power = 450;
+    }
+
+    est_pow += (((double)(this_time)/(double)(sec))
+                * this_freq_power);
+  }
+
+  printf("Est Power: %f mW.\nEst Run Time: %lld\xC2\xB5s.\n\n", est_pow, est_time);
 
   if (time >= sec){
     sv->schedule_feasible = false;
