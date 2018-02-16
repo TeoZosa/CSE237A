@@ -159,11 +159,11 @@ static inline void set_best_schedule_and_print(SharedVariable* sv) {
 ////  printf("Average Time: %lld\xC2\xB5s.\n", sv->best_pow);
   printf("Priority List:\n\n");
   sv->is_max_freq =   sv->is_max_freq_best;
-  char *curr_freq;
+
   for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
     sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
-    curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
-    printf("%d: \tWL %d\tFreq %s\n", w_idx, sv->workloads[w_idx].wl, curr_freq);
+    const char *curr_freq = set_freq_get_string(sv->workloads[w_idx].maxFreq);
+    printf("%d: \tWL %d\tFreq %d\n", w_idx, sv->workloads[w_idx].wl, sv->workloads[w_idx].maxFreq);
   }
 }
 
