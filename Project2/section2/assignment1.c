@@ -18,26 +18,26 @@ void program_init(SharedVariable* sv) {
   sv->bigOn = 0;
 
                 // You also need to initalize sensors here
-  printf("Initializing INPUTS.\n");
+//  printf("Initializing INPUTS.\n");
 
   /* Define Input Interfaces*/
   pinMode (PIN_BUTTON, INPUT);
   pinMode (PIN_SMALL, INPUT);
   pinMode (PIN_BIG, INPUT);
 
-  printf("Initializing OUTPUTS.\n");
+//  printf("Initializing OUTPUTS.\n");
 
   /*Define Output Interfaces*/
   pinMode (PIN_ALED, OUTPUT); // define AUTOFLASH led as output interface
 
-  printf("Initializing SMD.\n");
+//  printf("Initializing SMD.\n");
 
   /*Create the SMD RGB led PWM*/
   softPwmCreate(PIN_SMD_RED, 0, 0xFF);
   softPwmCreate(PIN_SMD_GRN, 0, 0xFF);
   softPwmCreate(PIN_SMD_BLU, 0, 0xFF);
 
-  printf("Initializing DIP.\n");
+//  printf("Initializing DIP.\n");
 
   /*Create the DIP RGB leds PWM*/
   softPwmCreate(PIN_DIP_RED, 0, 0xFF);
