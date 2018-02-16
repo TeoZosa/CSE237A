@@ -138,25 +138,25 @@ static void run_test_schedule_single(int sort_by_exec_time, SharedVariable* sv) 
 
 static void run_test_schedule_all(SharedVariable* sv) {
   for (int sort_by_exec_time = 0; sort_by_exec_time <= 1; ++sort_by_exec_time){
-    printf("Sorted By: %s\n", get_sorting_criteria_string(sort_by_exec_time));
+//    printf("Sorted By: %s\n", get_sorting_criteria_string(sort_by_exec_time));
     run_test_schedule_single(sort_by_exec_time, sv);
   }
 }
 
 static inline void set_best_schedule_and_print(SharedVariable* sv) {
-  printf("\t\t\t--Optimal Schedule--\n");
+//  printf("\t\t\t--Optimal Schedule--\n");
   const char *freq = set_freq_get_string(sv->is_max_freq_best);
   const char* sorting_criteria = get_sorting_criteria_string(sv->is_exec_time_best);
 
-  printf("Freq:  %s\n", freq);
-  printf("Sorted by: %s\n", sorting_criteria);
-  printf("Average Power: %f\n", sv->best_pow);
-//  printf("Average Time: %lld\xC2\xB5s.\n", sv->best_pow);
-  printf("Priority List:\n\n");
+//  printf("Freq:  %s\n", freq);
+//  printf("Sorted by: %s\n", sorting_criteria);
+//  printf("Average Power: %f\n", sv->best_pow);
+////  printf("Average Time: %lld\xC2\xB5s.\n", sv->best_pow);
+//  printf("Priority List:\n\n");
   sv->is_max_freq =   sv->is_max_freq_best;
   for (int w_idx = 0; w_idx < NUM_WORKLOADS; ++w_idx) {
     sv->workloads[w_idx] = sv->workloads_best_ordering[w_idx];
-    printf("%d: \tWL %d\n", w_idx, sv->workloads[w_idx].wl);
+//    printf("%d: \tWL %d\n", w_idx, sv->workloads[w_idx].wl);
   }
 }
 
@@ -172,7 +172,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
   int num_workloads = get_num_workloads();
   int w_idx;
   int num_iterations = 10;
-  printf("\tAt Freq = %s\n", freq);
+//  printf("\tAt Freq = %s\n", freq);
 
   for (w_idx = 0; w_idx < num_workloads; ++w_idx) {
     const WorkloadItem *workload_item = get_workload(w_idx);
@@ -200,7 +200,7 @@ static void run_workloads_sequential(int isMax, SharedVariable* sv)  {
 
       if (iterations + 1 == num_iterations){
         sv->workloads[w_idx].time /= num_iterations ;
-        printf("Workload body %2d finishes in %d \xC2\xB5s (AVG).\n", w_idx, sv->workloads[w_idx].time);
+//        printf("Workload body %2d finishes in %d \xC2\xB5s (AVG).\n", w_idx, sv->workloads[w_idx].time);
       }
 
       void *exit_ret = workload_item->workload_exit(init_ret);
@@ -394,7 +394,7 @@ void learn_workloads(SharedVariable* sv) {
 
 
   //do via exec
-  print_task_path();
+//  print_task_path();
 
   for (int is_max_freq = 0; is_max_freq <= 1; ++is_max_freq){
     sv->is_max_freq = (bool)is_max_freq;
@@ -406,7 +406,7 @@ void learn_workloads(SharedVariable* sv) {
   }
   set_best_schedule_and_print(sv);
 //  profile_sample_workloads();
-  profile_real_workloads();
+//  profile_real_workloads();
 }
 
 
