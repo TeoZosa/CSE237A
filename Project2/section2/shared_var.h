@@ -12,6 +12,11 @@ typedef struct
 {    int wl;
 		int time;
     int crit_time;
+  int maxFreq;
+
+  //TODO: optimize further by adding preferred core and freq?
+  //Sounds like diminishing returns
+
 } WLxTime;
 
 static int compare_exec_time(const void *workload1, const void *workload2)
@@ -42,6 +47,7 @@ typedef struct shared_variable {
 //  below: different variables we are optimizing for
   unsigned short int times_run_curr_schedule; // for a configuration to average the times
   double avg_pow_curr_schedule;
+  double avg_time_curr_schedule;
 
   bool is_max_freq;
   bool is_max_freq_best;
@@ -50,6 +56,7 @@ typedef struct shared_variable {
   bool is_exec_time_best;
 
   double best_pow;
+  double best_time;
   WLxTime workloads_best_ordering[NUM_WORKLOADS];
 
 
