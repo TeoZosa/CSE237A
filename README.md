@@ -1,4 +1,4 @@
-# Raspberry Pi 3 
+# Embedded computing projects using a Raspberry Pi 3 
 
 ## Project 1: Workload Characterization
 
